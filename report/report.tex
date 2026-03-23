@@ -1,0 +1,165 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{caption}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
+}
+
+\title{\textbf{MAEG3080 Fundamentals of Machine Intelligence}\\Final Project Report\\[0.5em]\large CIFAR-100 Image Classification with a Custom PyTorch Network}
+\author{
+    Student 1 Name (Student ID) \\
+    Student 2 Name (Student ID) \\
+    Student 3 Name (Student ID)
+}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report presents our final project for MAEG3080, where we train an image classifier from scratch on the CIFAR-100 dataset using PyTorch. The goal is to achieve high classification accuracy without using pretrained weights. We describe the dataset, model design, training strategy, experimental results, and lessons learned. Our final system is based on a custom residual network enhanced with modern regularization and augmentation techniques.
+\end{abstract}
+
+\section{Introduction}
+The objective of this project is to train a high-performing image classifier on CIFAR-100. CIFAR-100 is a challenging dataset because it contains 100 classes and only $600$ images per class, making strong generalization important. Since pretrained models are not allowed, the project emphasizes model design, optimization strategy, and data augmentation.
+
+\section{Dataset}
+CIFAR-100 contains $60{,}000$ RGB images of size $32 \times 32$, with $50{,}000$ training images and $10{,}000$ test images. Each class contains $600$ images. We normalize the input using the standard CIFAR-100 channel statistics:
+\[
+\mu = (0.5071, 0.4867, 0.4408), \quad
+\sigma = (0.2675, 0.2565, 0.2761).
+\]
+
+\section{Methodology}
+\subsection{Model Architecture}
+Our classifier is a custom residual convolutional neural network designed specifically for small images. The main design choices are:
+\begin{itemize}[leftmargin=1.2em]
+    \item Residual blocks to improve optimization in deeper networks.
+    \item Squeeze-and-excitation modules to improve channel-wise feature calibration.
+    \item Stochastic depth and dropout for regularization.
+    \item Global average pooling followed by a fully connected classifier.
+\end{itemize}
+
+Figure~\ref{fig:pipeline} can be replaced with your own architecture diagram or training pipeline figure.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{2.0in}\rule{0.9\linewidth}{0pt}}
+    \caption{Placeholder for model architecture or training pipeline figure.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Training Strategy}
+To improve performance, we used the following training techniques:
+\begin{itemize}[leftmargin=1.2em]
+    \item Random crop and horizontal flip
+    \item AutoAugment for CIFAR-style augmentation
+    \item Random erasing
+    \item Label smoothing
+    \item Mixup and CutMix
+    \item SGD with momentum and weight decay
+    \item Warmup followed by cosine learning-rate decay
+    \item Automatic mixed precision (when supported)
+    \item Exponential moving average (EMA) for evaluation
+\end{itemize}
+
+\subsection{Implementation Details}
+The model is implemented in PyTorch. Training checkpoints are saved during optimization, and a separate \texttt{results.py} script loads the trained model to evaluate the test set. This satisfies the project requirement for an independent prediction script.
+
+\section{Experiments}
+\subsection{Experimental Setup}
+Table~\ref{tab:hyperparameters} summarizes the main hyperparameters. Replace the placeholder values with the final settings used in your best run.
+
+\begin{table}[H]
+    \centering
+    \caption{Main training hyperparameters.}
+    \label{tab:hyperparameters}
+    \begin{tabular}{ll}
+        \toprule
+        Hyperparameter & Value \\
+        \midrule
+        Epochs & 220 \\
+        Batch size & 128 \\
+        Optimizer & SGD with momentum \\
+        Initial learning rate & 0.1 \\
+        Weight decay & $5 \times 10^{-4}$ \\
+        Label smoothing & 0.1 \\
+        Mixup alpha & 0.2 \\
+        CutMix alpha & 1.0 \\
+        Base width & 96 \\
+        Blocks per stage & (3, 4, 6, 3) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Results}
+Table~\ref{tab:results} is a template for reporting your experiments. Add more rows if needed.
+
+\begin{table}[H]
+    \centering
+    \caption{Experimental results on CIFAR-100.}
+    \label{tab:results}
+    \begin{tabular}{llll}
+        \toprule
+        Experiment & Key change & Test accuracy & Notes \\
+        \midrule
+        Baseline & Small residual network & XX.XX\% & Initial run \\
+        Improved model & Wider/deeper architecture & XX.XX\% & Better capacity \\
+        Final model & Full augmentation + EMA & XX.XX\% & Best submission \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Training Curve}
+Insert your loss and accuracy plots here after training.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{2.0in}\rule{0.9\linewidth}{0pt}}
+    \caption{Placeholder for training and validation curves.}
+    \label{fig:curves}
+\end{figure}
+
+\section{Discussion}
+Discuss what worked well, what did not work well, and why. Useful points include:
+\begin{itemize}[leftmargin=1.2em]
+    \item Which augmentation strategies improved performance most
+    \item Whether a deeper or wider network helped
+    \item Trade-offs between training time and accuracy
+    \item Typical failure cases or confusing classes
+\end{itemize}
+
+\section{Group Contribution}
+Clearly explain how each member contributed to the project.
+
+\begin{itemize}[leftmargin=1.2em]
+    \item Student 1: Data pipeline, augmentation experiments, report writing
+    \item Student 2: Model design, training implementation, checkpoint management
+    \item Student 3: Hyperparameter tuning, presentation slides, result analysis
+\end{itemize}
+
+\section{Conclusion}
+In this project, we built a CIFAR-100 image classifier from scratch using PyTorch and explored several techniques to improve generalization. The final system combines a custom residual architecture with strong regularization and augmentation. Further improvements may be possible through additional architecture search or longer training.
+
+\section*{References}
+\begin{enumerate}[leftmargin=1.5em]
+    \item A. Krizhevsky, ``Learning Multiple Layers of Features from Tiny Images,'' 2009.
+    \item K. He, X. Zhang, S. Ren, and J. Sun, ``Deep Residual Learning for Image Recognition,'' 2016.
+    \item TorchVision and PyTorch official documentation.
+\end{enumerate}
+
+\end{document}

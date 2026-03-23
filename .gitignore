@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+.gcloud/
+__pycache__/
+*.pyc
+data/
+checkpoints*/
+runs/
+cloud/*.log
+outputs/
+artifacts/

@@ -1,0 +1,125 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\title{MAEG3080 Final Project}
+\subtitle{CIFAR-100 Image Classification with a Custom PyTorch Network}
+\author{Student 1 \and Student 2 \and Student 3}
+\institute{The Chinese University of Hong Kong}
+\date{April 15, 2026}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Project Objective}
+    \begin{itemize}
+        \item Train an image classifier on CIFAR-100 using PyTorch
+        \item Design and train the network from scratch
+        \item Maximize test accuracy under the project constraints
+        \item Build a separate \texttt{results.py} script for evaluation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Dataset}
+    \begin{itemize}
+        \item CIFAR-100: 60,000 color images
+        \item Image size: $32 \times 32$
+        \item 100 classes, 600 images per class
+        \item 50,000 training images and 10,000 test images
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Model Design}
+    \begin{itemize}
+        \item Custom residual CNN for small-image classification
+        \item Squeeze-and-excitation modules for channel attention
+        \item Stochastic depth and dropout for regularization
+        \item Global average pooling and linear classifier
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Training Strategy}
+    \begin{itemize}
+        \item Random crop, horizontal flip, AutoAugment
+        \item Random erasing, label smoothing
+        \item Mixup and CutMix
+        \item SGD with momentum and weight decay
+        \item Warmup + cosine learning-rate schedule
+        \item EMA model for more stable evaluation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation Workflow}
+    \begin{enumerate}
+        \item Build custom model architecture in PyTorch
+        \item Train with augmentation and checkpoint saving
+        \item Evaluate with \texttt{results.py}
+        \item Compare experiments and tune hyperparameters
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{Experimental Results}
+    \begin{table}
+        \centering
+        \begin{tabular}{lll}
+            \toprule
+            Experiment & Accuracy & Notes \\
+            \midrule
+            Baseline & XX.XX\% & Initial model \\
+            Improved & XX.XX\% & Better augmentation \\
+            Final & XX.XX\% & Best submission \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Ablation Study}
+    \begin{itemize}
+        \item Effect of deeper network
+        \item Effect of AutoAugment
+        \item Effect of Mixup/CutMix
+        \item Effect of EMA evaluation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Challenges and Observations}
+    \begin{itemize}
+        \item CIFAR-100 is harder than CIFAR-10 because there are more classes
+        \item Overfitting becomes noticeable without augmentation
+        \item Stable optimization requires careful scheduling
+        \item Good accuracy comes from combining several improvements
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Group Contribution}
+    \begin{itemize}
+        \item Student 1: data preprocessing and augmentation experiments
+        \item Student 2: model architecture and training pipeline
+        \item Student 3: result analysis, report writing, and slide preparation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+    \begin{itemize}
+        \item Built a custom CIFAR-100 classifier from scratch
+        \item Improved performance with architecture and training refinements
+        \item Prepared a reusable evaluation script for final submission
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \centering
+    \Huge Questions?
+\end{frame}
+
+\end{document}
