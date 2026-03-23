@@ -23,6 +23,10 @@ This writes:
 artifacts/cifar_hydra_colab_bundle.tar.gz
 ```
 
+## Baseline repro (~34% test @ 4 epochs)
+
+The notebook includes optional cells that run `scripts/repro_34pct_4epoch_baseline.sh` — the same **small SE-ResNet** recipe as historic `checkpoints_cpu_4ep` (not the WRN Hydra ladder). Run those cells **before** `run-c` / `run-d` if you want Colab to match that baseline.
+
 ## Colab steps
 
 1. Open Google Colab.

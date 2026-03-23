@@ -17,6 +17,7 @@ Core files:
 - `scripts/select_best_run.py`: picks the best run from saved histories
 - `colab/CIFAR_Hydra_Colab.ipynb`: uploadable Colab notebook
 - `colab/prepare_colab_bundle.sh`: packages the workspace for Colab upload
+- `scripts/repro_34pct_4epoch_baseline.sh`: **SE-ResNet** 4-epoch / test-eval baseline (matches historic ~34% local run; Colab notebook can run this first)
 - `cloud/setup_gcp_project.sh`: enables APIs and creates the GCS bucket/prefixes
 - `cloud/create_gcp_spot_vm.sh`: helper to create the Google Cloud Spot VM
 - `cloud/gcp_push_workspace.sh`: uploads this workspace to the VM
