@@ -1,13 +1,13 @@
 # Report (LaTeX)
 
 - Source: `report.tex`
-- Build PDF (from repository root, needs `pdflatex` on your PATH):
+- Build PDF (from repository root). The script uses **`pdflatex`** if installed, otherwise **`tectonic`** (`brew install tectonic`):
 
   ```bash
   python scripts/build_pdfs.py
   ```
 
-  PDF is written to `artifacts/report.pdf`.
+  PDFs: `artifacts/report.pdf` and `artifacts/presentation.pdf`.
 
 - Manual build:
 
