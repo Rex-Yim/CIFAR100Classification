@@ -31,6 +31,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--save-dir", type=str, default="./checkpoints")
     parser.add_argument("--run-name", type=str, default="")
     parser.add_argument("--resume", type=str, default="")
+    parser.add_argument(
+        "--init-from",
+        type=str,
+        default="",
+        help="Load only model weights from this checkpoint; fresh optimizer/scheduler/history. "
+        "Same architecture as the checkpoint. Use to finetune from e.g. the ~34%% SE-ResNet baseline.",
+    )
 
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -366,12 +373,31 @@ def load_resume_state(
     return start_epoch, best_eval_accuracy, history
 
 
+def load_init_from_weights(
+    init_path: Path,
+    model: nn.Module,
+    ema_model: nn.Module | None,
+    device: torch.device,
+) -> None:
+    checkpoint = torch.load(init_path, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"], strict=True)
+    ema_state = checkpoint.get("ema_model_state_dict")
+    if ema_model is not None:
+        if ema_state is not None:
+            ema_model.load_state_dict(ema_state, strict=True)
+        else:
+            ema_model.load_state_dict(model.state_dict())
+
+
 def main() -> None:
     args = parse_args()
     seed_everything(args.seed)
     if args.num_threads > 0:
         torch.set_num_threads(args.num_threads)
     device = torch.device(args.device)
+    if device.type == "cuda":
+        # Fixed image size (CIFAR) — benchmark picks faster conv algorithms (often faster on Colab T4/L4).
+        torch.backends.cudnn.benchmark = True
     run_dir = resolve_run_dir(args)
     history_path = run_dir / "history.json"
     last_path = run_dir / "last.pt"
@@ -411,21 +437,34 @@ def main() -> None:
         ]
 
     resume_path = resolve_resume_path(args, run_dir)
-    start_epoch, best_eval_accuracy, history = load_resume_state(
-        resume_path=resume_path,
-        model=model,
-        ema_model=ema_model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        scaler=scaler,
-        history_path=history_path,
-        device=device,
-    )
+    init_from = Path(args.init_from) if args.init_from else None
+    if init_from is not None and resume_path is not None:
+        raise ValueError("Use either --init-from or --resume, not both.")
+    if init_from is not None:
+        if not init_from.is_file():
+            raise FileNotFoundError(f"--init-from checkpoint not found: {init_from}")
+        load_init_from_weights(init_from, model, ema_model, device)
+        start_epoch, best_eval_accuracy, history = 1, 0.0, []
+    elif resume_path is not None:
+        start_epoch, best_eval_accuracy, history = load_resume_state(
+            resume_path=resume_path,
+            model=model,
+            ema_model=ema_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            scaler=scaler,
+            history_path=history_path,
+            device=device,
+        )
+    else:
+        start_epoch, best_eval_accuracy, history = 1, 0.0, []
 
     print(f"Training split size: {data_info['train_size']}", flush=True)
     print(f"Evaluation split: {data_info['eval_split']} ({data_info['eval_size']} samples)", flush=True)
     print(f"Run directory: {run_dir}", flush=True)
-    if resume_path is not None:
+    if init_from is not None:
+        print(f"Initialized weights from: {init_from}", flush=True)
+    elif resume_path is not None:
         print(f"Resuming from: {resume_path}", flush=True)
     if fine_to_coarse is not None:
         print(f"Hierarchical loss enabled with weight {args.coarse_loss_weight:.2f}", flush=True)
