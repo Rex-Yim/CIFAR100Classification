@@ -15,7 +15,7 @@ Core files:
 - `scripts/hydra_ladder.sh`: the planned Hydra ablation ladder
 - `scripts/hydra_m1_lite.sh`: a lower-compute Apple Silicon friendly training preset
 - `scripts/select_best_run.py`: picks the best run from saved histories
-- `colab/CIFAR_Hydra.ipynb`: uploadable Colab notebook
+- `colab/CIFAR_Quick.ipynb`: uploadable Colab notebook (SE-ResNet quick path)
 - `colab/prepare_colab_bundle.sh`: packages the workspace for Colab upload
 - `scripts/repro_34pct_4epoch_baseline.sh`: **SE-ResNet** 4-epoch / test-eval baseline (matches historic ~34% local run; Colab notebook can run this first)
 - `scripts/iterate_from_34pct.sh`: **finetune after the baseline** — loads `best.pt` with `--init-from` (weights only), fresh LR schedule, RandAugment, default **60** epochs (faster than WRN ladder from scratch)
@@ -190,21 +190,13 @@ This writes:
 Then:
 
 1. Open Google Colab and switch the runtime to **GPU**.
-2. Upload `colab/CIFAR_Hydra.ipynb` (or create a new Colab notebook and paste cells).
+2. Upload `colab/CIFAR_Quick.ipynb`.
 3. Run the notebook cells in order.
 4. Put `artifacts/cifar_hydra_project.tar.gz` on Drive under `Colab_CIFAR/` (see notebook).
 
 The notebook stores datasets and checkpoints in Google Drive, so Colab restarts are less painful.
 
-Recommended experiment order on Colab:
-
-```bash
-run-c
-run-d
-run-e
-select-best
-run-f
-```
+The quick notebook runs **`scripts/quick_se_resnet_results.sh`** (baseline if needed → finetune → `results.py`). Long **WRN / hydra ladder** runs use `scripts/hydra_ladder.sh` on your machine or a VM, not the Colab quick notebook.
 
 ## 8. Google Cloud workflow
 
