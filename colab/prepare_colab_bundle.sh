@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/artifacts}"
-BUNDLE_PATH="${BUNDLE_PATH:-$OUTPUT_DIR/cifar_hydra_colab_bundle.tar.gz}"
+BUNDLE_PATH="${BUNDLE_PATH:-$OUTPUT_DIR/cifar_hydra_project.tar.gz}"
 
 mkdir -p "$OUTPUT_DIR"
 

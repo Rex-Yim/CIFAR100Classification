@@ -15,6 +15,11 @@ DEVICE="${DEVICE:-cuda}"
 NUM_WORKERS="${NUM_WORKERS:-4}"
 BATCH_SIZE="${BATCH_SIZE:-128}"
 
+# Optional overrides for smoke tests (defaults match the 50% plan: long val runs + final train).
+HYDRA_AB_EPOCHS="${HYDRA_AB_EPOCHS:-200}"
+HYDRA_CDE_EPOCHS="${HYDRA_CDE_EPOCHS:-240}"
+RUN_F_EPOCHS="${RUN_F_EPOCHS:-300}"
+
 COMMON_ARGS=(
   --save-dir "$SAVE_DIR"
   --data-dir "$DATA_DIR"
@@ -43,7 +48,7 @@ run_train() {
 case "$MODE" in
   run-a)
     run_train hydra_run_a \
-      --epochs 200 \
+      --epochs "$HYDRA_AB_EPOCHS" \
       --eval-split val \
       --aug basic \
       --random-erasing-p 0.0 \
@@ -54,7 +59,7 @@ case "$MODE" in
     ;;
   run-b)
     run_train hydra_run_b \
-      --epochs 200 \
+      --epochs "$HYDRA_AB_EPOCHS" \
       --eval-split val \
       --aug randaugment \
       --randaugment-n 2 \
@@ -67,7 +72,7 @@ case "$MODE" in
     ;;
   run-c)
     run_train hydra_run_c \
-      --epochs 240 \
+      --epochs "$HYDRA_CDE_EPOCHS" \
       --eval-split val \
       --aug randaugment \
       --randaugment-n 2 \
@@ -83,7 +88,7 @@ case "$MODE" in
     ;;
   run-d)
     run_train hydra_run_d \
-      --epochs 240 \
+      --epochs "$HYDRA_CDE_EPOCHS" \
       --eval-split val \
       --aug randaugment \
       --randaugment-n 2 \
@@ -99,7 +104,7 @@ case "$MODE" in
     ;;
   run-e)
     run_train hydra_run_e \
-      --epochs 240 \
+      --epochs "$HYDRA_CDE_EPOCHS" \
       --eval-split val \
       --aug randaugment \
       --randaugment-n 2 \
@@ -162,7 +167,7 @@ PY
       --batch-size "$BATCH_SIZE" \
       --num-workers "$NUM_WORKERS" \
       --run-name hydra_run_f_final \
-      --epochs 300 \
+      --epochs "$RUN_F_EPOCHS" \
       --final-train-full \
       --eval-split test \
       "${FINAL_ARGS[@]}"
@@ -191,6 +196,10 @@ Usage:
   BEST_RUN=hydra_run_d scripts/hydra_ladder.sh run-f
   scripts/hydra_ladder.sh select-best
   scripts/hydra_ladder.sh all-ablations
+Environment (optional):
+  HYDRA_AB_EPOCHS   default 200 (run-a, run-b)
+  HYDRA_CDE_EPOCHS  default 240 (run-c, run-d, run-e)
+  RUN_F_EPOCHS      default 300 (run-f)
 EOF
     exit 1
     ;;

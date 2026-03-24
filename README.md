@@ -15,9 +15,10 @@ Core files:
 - `scripts/hydra_ladder.sh`: the planned Hydra ablation ladder
 - `scripts/hydra_m1_lite.sh`: a lower-compute Apple Silicon friendly training preset
 - `scripts/select_best_run.py`: picks the best run from saved histories
-- `colab/CIFAR_Hydra_Colab.ipynb`: uploadable Colab notebook
+- `colab/CIFAR_Hydra.ipynb`: uploadable Colab notebook
 - `colab/prepare_colab_bundle.sh`: packages the workspace for Colab upload
 - `scripts/repro_34pct_4epoch_baseline.sh`: **SE-ResNet** 4-epoch / test-eval baseline (matches historic ~34% local run; Colab notebook can run this first)
+- `scripts/local_runner.sh`: **single entrypoint** for Cursor / terminal (`env`, `install`, `baseline`, `ladder`, `select-best`, `final`, `results`) — same flows as Colab without `google.colab`
 - `cloud/setup_gcp_project.sh`: enables APIs and creates the GCS bucket/prefixes
 - `cloud/create_gcp_spot_vm.sh`: helper to create the Google Cloud Spot VM
 - `cloud/gcp_push_workspace.sh`: uploads this workspace to the VM
@@ -32,7 +33,7 @@ These are **separate workflows**. They share the same Python entrypoints (`train
 
 | Path | Where it runs | Outputs / state | Start here |
 |------|----------------|-----------------|------------|
-| **Local** | Your laptop or workstation | `./data/`, `./checkpoints*/`, `./runs/` (all gitignored) | [§1 Install](#1-install-dependencies) → [§2](#2-run-the-current-best-local-style-hydra-configuration) or [§6 M1-lite](#6-m1--low-compute-local-run) |
+| **Local** | Your laptop or workstation | `./data/`, `./checkpoints*/`, `./runs/` (all gitignored) | [§1 Install](#1-install-dependencies) → [§1b Local runner](#1b-local-runner-cursor--terminal) or [§2](#2-run-the-current-best-local-style-hydra-configuration) or [§6 M1-lite](#6-m1--low-compute-local-run) |
 | **Colab** | Google Colab + optional Drive | Notebook-managed paths; bundle upload | [`colab/README.md`](colab/README.md) and [§7](#7-google-colab-workflow) |
 | **Cloud VM** | GCP Spot VM + GCS | Synced via `gsutil` in `cloud/gcp_run_experiment.sh` | [§8](#8-google-cloud-workflow) |
 
@@ -44,6 +45,22 @@ These are **separate workflows**. They share the same Python entrypoints (`train
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+## 1b. Local runner (Cursor / terminal)
+
+Use this instead of the Colab notebook when you already have the repo on disk. It sets `DATA_DIR` / `SAVE_DIR` under the project, picks **cuda → mps → cpu** unless you set `DEVICE`, and wraps the same shell scripts the notebook calls.
+
+```bash
+source .venv/bin/activate
+bash scripts/local_runner.sh help
+bash scripts/local_runner.sh env
+bash scripts/local_runner.sh install          # optional if deps missing
+bash scripts/local_runner.sh baseline       # 4-epoch SE-ResNet sanity check
+bash scripts/local_runner.sh ladder run-d   # main WRN-Hydra run (long)
+bash scripts/local_runner.sh select-best
+bash scripts/local_runner.sh final          # run-f after auto-picking best of c/d/e
+bash scripts/local_runner.sh results        # test accuracy on hydra_run_f_final/best.pt
 ```
 
 ## 2. Run the current best local-style Hydra configuration
@@ -165,15 +182,15 @@ colab/prepare_colab_bundle.sh
 This writes:
 
 ```text
-./artifacts/cifar_hydra_colab_bundle.tar.gz
+./artifacts/cifar_hydra_project.tar.gz
 ```
 
 Then:
 
 1. Open Google Colab and switch the runtime to **GPU**.
-2. Upload `colab/CIFAR_Hydra_Colab.ipynb`.
+2. Upload `colab/CIFAR_Hydra.ipynb` (or create a new Colab notebook and paste cells).
 3. Run the notebook cells in order.
-4. When prompted, upload `artifacts/cifar_hydra_colab_bundle.tar.gz`.
+4. Put `artifacts/cifar_hydra_project.tar.gz` on Drive under `Colab_CIFAR/` (see notebook).
 
 The notebook stores datasets and checkpoints in Google Drive, so Colab restarts are less painful.
 
