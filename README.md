@@ -252,8 +252,10 @@ cloud/gcp_run_experiment.sh gs://YOUR_BUCKET hydra_run_d \
 
 ## Notes for the report/presentation
 
-- The main system is now **CIFAR Hydra**: a WideResNet with attention and detail-preserving downsampling.
-- Tuning should be reported on the validation split, not the official test set.
-- The final reported test result should come from the full-train final run and be reproducible through `results.py`.
-- Compile the report with `pdflatex report.tex` in `report/`.
-- Compile the slides with `pdflatex presentation.tex` in `slides/`.
+- The **Colab quick path** uses a **two-stage SE-ResNet** (baseline, then finetune with RandAugment). Final **official test** accuracy should come from `results.py` (e.g. **65.17%** with the shipped quick pipeline).
+- Report tuning on the **validation** split; reserve the **test** set for the final `results.py` number.
+- **Build PDFs (requires `pdflatex`, e.g.\ BasicTeX / MacTeX):**
+  ```bash
+  python scripts/build_pdfs.py
+  ```
+  Output: `artifacts/report.pdf` and `artifacts/presentation.pdf` (the `artifacts/` folder is gitignored).

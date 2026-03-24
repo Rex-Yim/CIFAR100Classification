@@ -31,116 +31,86 @@
 \maketitle
 
 \begin{abstract}
-This report presents our final project for MAEG3080, where we train an image classifier from scratch on the CIFAR-100 dataset using PyTorch. The goal is to achieve high classification accuracy without using pretrained weights. We describe the dataset, model design, training strategy, experimental results, and lessons learned. Our final system is based on a custom residual network enhanced with modern regularization and augmentation techniques.
+This report presents our final project for MAEG3080: training an image classifier from scratch on CIFAR-100 using PyTorch, without pretrained weights. We use a compact SE-ResNet-style architecture with squeeze-and-excitation blocks. We first train a short baseline with basic augmentations, then finetune from those weights with RandAugment and a held-out validation split. The final model achieves \textbf{65.17\%} accuracy on the official test set, evaluated with an independent \texttt{results.py} script as required by the project.
 \end{abstract}
 
 \section{Introduction}
-The objective of this project is to train a high-performing image classifier on CIFAR-100. CIFAR-100 is a challenging dataset because it contains 100 classes and only $600$ images per class, making strong generalization important. Since pretrained models are not allowed, the project emphasizes model design, optimization strategy, and data augmentation.
+The objective is to train a high-performing classifier on CIFAR-100 ($100$ classes, $32 \times 32$ RGB images). With no pretrained weights, performance depends on architecture choice, augmentation, and optimization. We prioritize a \emph{reproducible, efficient} pipeline (Google Colab + Google Drive checkpoints) and report official test accuracy from a dedicated evaluation script.
 
 \section{Dataset}
-CIFAR-100 contains $60{,}000$ RGB images of size $32 \times 32$, with $50{,}000$ training images and $10{,}000$ test images. Each class contains $600$ images. We normalize the input using the standard CIFAR-100 channel statistics:
+CIFAR-100 contains $60{,}000$ images: $50{,}000$ for training and $10{,}000$ for testing. We normalize inputs with the standard channel statistics:
 \[
 \mu = (0.5071, 0.4867, 0.4408), \quad
 \sigma = (0.2675, 0.2565, 0.2761).
 \]
+For finetuning, we hold out $10\%$ of the training labels as a stratified validation set (seed $42$); the baseline stage uses the full $50{,}000$ training images and evaluates on the test set each epoch for comparability with a historic short baseline.
 
 \section{Methodology}
 \subsection{Model Architecture}
-Our classifier is a custom residual convolutional neural network designed specifically for small images. The main design choices are:
-\begin{itemize}[leftmargin=1.2em]
-    \item Residual blocks to improve optimization in deeper networks.
-    \item Squeeze-and-excitation modules to improve channel-wise feature calibration.
-    \item Stochastic depth and dropout for regularization.
-    \item Global average pooling followed by a fully connected classifier.
-\end{itemize}
-
-Figure~\ref{fig:pipeline} can be replaced with your own architecture diagram or training pipeline figure.
-
-\begin{figure}[H]
-    \centering
-    \fbox{\rule{0pt}{2.0in}\rule{0.9\linewidth}{0pt}}
-    \caption{Placeholder for model architecture or training pipeline figure.}
-    \label{fig:pipeline}
-\end{figure}
+We use a \textbf{small SE-ResNet} (\texttt{se\_resnet} in our codebase): residual stages with \textbf{squeeze-and-excitation} channel attention, \texttt{base\_width}${}=32$, \textbf{two} residual blocks per stage (\texttt{2$\times$2$\times$2$\times$2}), and global average pooling plus a linear classifier ($100$ classes). This design balances capacity and training time on commodity GPUs.
 
 \subsection{Training Strategy}
-To improve performance, we used the following training techniques:
+We use a \textbf{two-stage} procedure:
 \begin{itemize}[leftmargin=1.2em]
-    \item Random crop and horizontal flip
-    \item AutoAugment for CIFAR-style augmentation
-    \item Random erasing
-    \item Label smoothing
-    \item Mixup and CutMix
-    \item SGD with momentum and weight decay
-    \item Warmup followed by cosine learning-rate decay
-    \item Automatic mixed precision (when supported)
-    \item Exponential moving average (EMA) for evaluation
+    \item \textbf{Stage A (baseline):} $4$ epochs on full training data, \textbf{basic} augmentation (crop, flip), \textbf{no} Mixup/CutMix, SGD (lr $0.1$), warmup $1$ epoch, cosine decay, test-set evaluation each epoch. Produces a $\sim$33\% test checkpoint used as initialization.
+    \item \textbf{Stage B (finetune):} Load weights only (\texttt{--init-from}), \textbf{new} optimizer and cosine schedule. \textbf{RandAugment} ($N{=}2$, $M{=}9$), random erasing ($p{=}0.05$), label smoothing $0.05$, SGD with initial lr $0.05$, warmup $5$ epochs, $30$ epochs total. \textbf{EMA disabled} in both stages for stability. Evaluation during finetuning uses the \textbf{validation} split; the \textbf{official test} is reserved for \texttt{results.py}.
 \end{itemize}
+Training uses automatic mixed precision on CUDA where applicable (\texttt{torch.autocast}); checkpoints are written to disk under a configurable save directory.
 
 \subsection{Implementation Details}
-The model is implemented in PyTorch. Training checkpoints are saved during optimization, and a separate \texttt{results.py} script loads the trained model to evaluate the test set. This satisfies the project requirement for an independent prediction script.
+Implementation is in PyTorch (\texttt{train.py}, \texttt{model.py}, \texttt{utils.py}). The Colab path runs \texttt{scripts/quick\_se\_resnet\_results.sh}: baseline if needed, finetune, then \texttt{results.py} on the best finetune checkpoint for the \textbf{final test number}.
 
 \section{Experiments}
 \subsection{Experimental Setup}
-Table~\ref{tab:hyperparameters} summarizes the main hyperparameters. Replace the placeholder values with the final settings used in your best run.
+Table~\ref{tab:hyperparameters} summarizes the two stages. Table~\ref{tab:results} reports accuracy.
 
 \begin{table}[H]
     \centering
-    \caption{Main training hyperparameters.}
+    \caption{Hyperparameters for the two-stage SE-ResNet pipeline (final submission).}
     \label{tab:hyperparameters}
-    \begin{tabular}{ll}
+    \begin{tabular}{lll}
         \toprule
-        Hyperparameter & Value \\
+        Setting & Stage A (baseline) & Stage B (finetune) \\
         \midrule
-        Epochs & 220 \\
-        Batch size & 128 \\
-        Optimizer & SGD with momentum \\
-        Initial learning rate & 0.1 \\
-        Weight decay & $5 \times 10^{-4}$ \\
-        Label smoothing & 0.1 \\
-        Mixup alpha & 0.2 \\
-        CutMix alpha & 1.0 \\
-        Base width & 96 \\
-        Blocks per stage & (3, 4, 6, 3) \\
+        Epochs & 4 & 30 \\
+        Batch size & 64 & 256 \\
+        Augmentation & Basic (crop, flip) & RandAugment + erasing \\
+        Mixup / CutMix & None & None \\
+        Optimizer & SGD (momentum $0.9$, WD $5\times 10^{-4}$) & Same \\
+        LR schedule & Warmup 1 + cosine & Warmup 5 + cosine \\
+        Initial LR & $0.1$ & $0.05$ \\
+        Label smoothing & $0$ & $0.05$ \\
+        Eval during training & Test ($10{,}000$) & Val ($10\%$ of train) \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \subsection{Results}
-Table~\ref{tab:results} is a template for reporting your experiments. Add more rows if needed.
-
 \begin{table}[H]
     \centering
-    \caption{Experimental results on CIFAR-100.}
+    \caption{CIFAR-100 accuracy. Official test is from \texttt{results.py} on the finetune checkpoint.}
     \label{tab:results}
-    \begin{tabular}{llll}
+    \begin{tabular}{lll}
         \toprule
-        Experiment & Key change & Test accuracy & Notes \\
+        Stage & Metric & Value \\
         \midrule
-        Baseline & Small residual network & XX.XX\% & Initial run \\
-        Improved model & Wider/deeper architecture & XX.XX\% & Better capacity \\
-        Final model & Full augmentation + EMA & XX.XX\% & Best submission \\
+        A: baseline ($4$ epochs) & Test accuracy & $\approx 33.3\%$ \\
+        B: finetune ($30$ epochs) & Best validation & $65.22\%$ \\
+        B: finetune (final) & \textbf{Official test} & \textbf{65.17\%} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Training Curve}
-Insert your loss and accuracy plots here after training.
+Validation and test accuracies are aligned ($\sim$65.2\%), indicating that the stratified val split is a reasonable proxy and we do not observe extreme overfitting to the validation fold.
 
-\begin{figure}[H]
-    \centering
-    \fbox{\rule{0pt}{2.0in}\rule{0.9\linewidth}{0pt}}
-    \caption{Placeholder for training and validation curves.}
-    \label{fig:curves}
-\end{figure}
+\subsection{Training Curve}
+Loss decreases and accuracy increases monotonically over the short baseline; finetune metrics improve steadily over $30$ epochs. Plots can be generated from \texttt{history.json} in each run directory if required.
 
 \section{Discussion}
-Discuss what worked well, what did not work well, and why. Useful points include:
 \begin{itemize}[leftmargin=1.2em]
-    \item Which augmentation strategies improved performance most
-    \item Whether a deeper or wider network helped
-    \item Trade-offs between training time and accuracy
-    \item Typical failure cases or confusing classes
+    \item \textbf{Initialization matters:} Starting from the Stage~A weights gave a large jump over training the finetune recipe from scratch in the same wall-clock budget.
+    \item \textbf{RandAugment + longer schedule:} Stronger augmentation and more epochs on top of a sane baseline dominated our earlier attempts with a much larger WRN trained from random initialization in limited time.
+    \item \textbf{Trade-offs:} The SE-ResNet path is faster to iterate than a full Wide-ResNet Hydra ladder; the cost is a lower ceiling than very large models trained for hundreds of epochs.
 \end{itemize}
 
 \section{Group Contribution}
@@ -153,12 +123,13 @@ Clearly explain how each member contributed to the project.
 \end{itemize}
 
 \section{Conclusion}
-In this project, we built a CIFAR-100 image classifier from scratch using PyTorch and explored several techniques to improve generalization. The final system combines a custom residual architecture with strong regularization and augmentation. Further improvements may be possible through additional architecture search or longer training.
+We trained a compact SE-ResNet from scratch on CIFAR-100 using a two-stage baseline-plus-finetune workflow in PyTorch, with RandAugment and careful scheduling on the second stage. Our best model achieves \textbf{65.17\%} test accuracy via \texttt{results.py}. Future work could explore wider networks or longer schedules if compute allows.
 
 \section*{References}
 \begin{enumerate}[leftmargin=1.5em]
     \item A. Krizhevsky, ``Learning Multiple Layers of Features from Tiny Images,'' 2009.
     \item K. He, X. Zhang, S. Ren, and J. Sun, ``Deep Residual Learning for Image Recognition,'' 2016.
+    \item J. Hu, L. Shen, and G. Sun, ``Squeeze-and-Excitation Networks,'' 2018.
     \item TorchVision and PyTorch official documentation.
 \end{enumerate}
 

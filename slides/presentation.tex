@@ -10,7 +10,7 @@
 \usepackage{hyperref}
 
 \title{MAEG3080 Final Project}
-\subtitle{CIFAR-100 Image Classification with a Custom PyTorch Network}
+\subtitle{CIFAR-100 Image Classification (SE-ResNet, PyTorch)}
 \author{Student 1 \and Student 2 \and Student 3}
 \institute{The Chinese University of Hong Kong}
 \date{April 15, 2026}
@@ -23,97 +23,93 @@
 
 \begin{frame}{Project Objective}
     \begin{itemize}
-        \item Train an image classifier on CIFAR-100 using PyTorch
-        \item Design and train the network from scratch
-        \item Maximize test accuracy under the project constraints
-        \item Build a separate \texttt{results.py} script for evaluation
+        \item Train an image classifier on CIFAR-100 using PyTorch \emph{from scratch} (no pretrained weights)
+        \item Use a compact \textbf{SE-ResNet} with squeeze-and-excitation blocks
+        \item Two-stage pipeline: short baseline $\rightarrow$ finetune with RandAugment
+        \item Report official test accuracy using \texttt{results.py}
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Dataset}
     \begin{itemize}
-        \item CIFAR-100: 60,000 color images
-        \item Image size: $32 \times 32$
-        \item 100 classes, 600 images per class
-        \item 50,000 training images and 10,000 test images
+        \item CIFAR-100: 60,000 color images ($32 \times 32$)
+        \item 100 fine-grained classes; 600 images per class
+        \item 50,000 train / 10,000 test (official)
+        \item Finetuning: 90\% train / 10\% stratified val (seed 42)
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Model Design}
+\begin{frame}{Model}
     \begin{itemize}
-        \item Custom residual CNN for small-image classification
-        \item Squeeze-and-excitation modules for channel attention
-        \item Stochastic depth and dropout for regularization
-        \item Global average pooling and linear classifier
+        \item SE-ResNet-style CNN (\texttt{se\_resnet}): residual blocks + SE attention
+        \item Small configuration: base width 32; 2 blocks per stage
+        \item Global average pooling $\rightarrow$ linear classifier (100 classes)
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Training Strategy}
+\begin{frame}{Training Pipeline}
     \begin{itemize}
-        \item Random crop, horizontal flip, AutoAugment
-        \item Random erasing, label smoothing
-        \item Mixup and CutMix
-        \item SGD with momentum and weight decay
-        \item Warmup + cosine learning-rate schedule
-        \item EMA model for more stable evaluation
+        \item \textbf{Stage A:} 4 epochs, basic aug (crop, flip), SGD, $\sim$33\% test checkpoint
+        \item \textbf{Stage B:} Load weights (\texttt{--init-from}), RandAugment, 30 epochs, lr 0.05
+        \item Label smoothing (0.05) in finetune; Mixup/CutMix not used in final path
+        \item AMP on GPU; checkpoints saved to disk / Google Drive on Colab
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Implementation Workflow}
     \begin{enumerate}
-        \item Build custom model architecture in PyTorch
-        \item Train with augmentation and checkpoint saving
-        \item Evaluate with \texttt{results.py}
-        \item Compare experiments and tune hyperparameters
+        \item Train baseline (or reuse checkpoint) $\rightarrow$ \texttt{best.pt}
+        \item Finetune with \texttt{iterate\_from\_34pct.sh} / quick script
+        \item Evaluate with \texttt{results.py} on official test set
     \end{enumerate}
 \end{frame}
 
-\begin{frame}{Experimental Results}
+\begin{frame}{Results (CIFAR-100)}
     \begin{table}
         \centering
-        \begin{tabular}{lll}
+        \begin{tabular}{ll}
             \toprule
-            Experiment & Accuracy & Notes \\
+            Setting & Accuracy \\
             \midrule
-            Baseline & XX.XX\% & Initial model \\
-            Improved & XX.XX\% & Better augmentation \\
-            Final & XX.XX\% & Best submission \\
+            Baseline (4 epochs, test eval) & $\approx 33.3\%$ \\
+            Best validation (finetune) & 65.22\% \\
+            \textbf{Official test (final)} & \textbf{65.17\%} \\
             \bottomrule
         \end{tabular}
     \end{table}
+    \vspace{0.5em}
+    \small Final number from \texttt{results.py} on finetuned checkpoint.
 \end{frame}
 
-\begin{frame}{Ablation Study}
+\begin{frame}{What Worked}
     \begin{itemize}
-        \item Effect of deeper network
-        \item Effect of AutoAugment
-        \item Effect of Mixup/CutMix
-        \item Effect of EMA evaluation
+        \item Initializing from a stable short baseline before strong augmentation
+        \item RandAugment + longer finetune schedule on top of Stage~A
+        \item Holding out a validation split for model selection; test only at the end
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Challenges and Observations}
+\begin{frame}{Challenges}
     \begin{itemize}
-        \item CIFAR-100 is harder than CIFAR-10 because there are more classes
-        \item Overfitting becomes noticeable without augmentation
-        \item Stable optimization requires careful scheduling
-        \item Good accuracy comes from combining several improvements
+        \item CIFAR-100 is hard: many similar classes, small images
+        \item Large WRN / multi-hundred-epoch runs are costly on free Colab
+        \item SE-ResNet path trades some ceiling for faster iteration and reliable gains
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Group Contribution}
     \begin{itemize}
         \item Student 1: data preprocessing and augmentation experiments
-        \item Student 2: model architecture and training pipeline
-        \item Student 3: result analysis, report writing, and slide preparation
+        \item Student 2: model code, training pipeline, Colab workflow
+        \item Student 3: result analysis, report writing, slides
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}
     \begin{itemize}
-        \item Built a custom CIFAR-100 classifier from scratch
-        \item Improved performance with architecture and training refinements
-        \item Prepared a reusable evaluation script for final submission
+        \item Two-stage SE-ResNet training from scratch
+        \item \textbf{65.17\%} official test accuracy on CIFAR-100
+        \item Independent \texttt{results.py} evaluation for final submission
     \end{itemize}
 \end{frame}
 
