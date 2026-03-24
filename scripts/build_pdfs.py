@@ -111,10 +111,25 @@ def main() -> None:
     artifacts = root / "artifacts"
     report_tex = root / "report" / "report.tex"
     slides_tex = root / "slides" / "presentation.tex"
+    plot_script = root / "scripts" / "plot_training_curves.py"
 
     for tex in (report_tex, slides_tex):
         if not tex.is_file():
             raise FileNotFoundError(tex)
+
+    if plot_script.is_file():
+        r = subprocess.run(
+            [sys.executable, str(plot_script)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+        )
+        if r.returncode != 0:
+            print(r.stderr[-2000:] if r.stderr else "", file=sys.stderr)
+            raise RuntimeError(
+                "plot_training_curves.py failed; install matplotlib or fix the log path."
+            )
+        print(r.stdout.strip() or "Generated training curve figures.")
 
     if find_pdflatex():
         engine = "pdflatex"

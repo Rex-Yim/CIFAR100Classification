@@ -1,0 +1,500 @@
+>>> No baseline at /content/drive/MyDrive/Colab_CIFAR/checkpoints/colab_repro_34pct_4epoch/best.pt — running repro_34pct_4epoch_baseline.sh (~4 epochs)
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+Training split size: 50000
+Evaluation split: test (10000 samples)
+Run directory: /content/drive/MyDrive/Colab_CIFAR/checkpoints/colab_repro_34pct_4epoch
+
+Epoch 1/4
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+{
+  "epoch": 1,
+  "train_loss": 4.220790830078125,
+  "train_accuracy": 0.0521,
+  "train_coarse_loss": 0.0,
+  "eval_split": "test",
+  "eval_loss": 3.8819655517578124,
+  "eval_accuracy": 0.0912,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.1
+}
+New best test accuracy: 0.0912
+
+Epoch 2/4
+{
+  "epoch": 2,
+  "train_loss": 3.8004483697509768,
+  "train_accuracy": 0.1061,
+  "train_coarse_loss": 0.0,
+  "eval_split": "test",
+  "eval_loss": 3.3993908004760742,
+  "eval_accuracy": 0.175,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.07500000000000001
+}
+New best test accuracy: 0.1750
+
+Epoch 3/4
+{
+  "epoch": 3,
+  "train_loss": 3.266917774963379,
+  "train_accuracy": 0.19664,
+  "train_coarse_loss": 0.0,
+  "eval_split": "test",
+  "eval_loss": 3.0104469482421874,
+  "eval_accuracy": 0.2433,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.025000000000000015
+}
+New best test accuracy: 0.2433
+
+Epoch 4/4
+{
+  "epoch": 4,
+  "train_loss": 2.859651410522461,
+  "train_accuracy": 0.2789,
+  "train_coarse_loss": 0.0,
+  "eval_split": "test",
+  "eval_loss": 2.5729599411010744,
+  "eval_accuracy": 0.3332,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0
+}
+New best test accuracy: 0.3332
+
+Training finished. Best test accuracy: 0.3332
+Best checkpoint saved to: /content/drive/MyDrive/Colab_CIFAR/checkpoints/colab_repro_34pct_4epoch/best.pt
+>>> Finetune from baseline: 30 epochs → se_resnet_from_34pct
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+Training split size: 45000
+Evaluation split: val (5000 samples)
+Run directory: /content/drive/MyDrive/Colab_CIFAR/checkpoints/se_resnet_from_34pct
+Initialized weights from: /content/drive/MyDrive/Colab_CIFAR/checkpoints/colab_repro_34pct_4epoch/best.pt
+
+Epoch 1/30
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+{
+  "epoch": 1,
+  "train_loss": 3.2039097379896377,
+  "train_accuracy": 0.2543777777910233,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.6460088970184326,
+  "eval_accuracy": 0.364,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.014000000000000002
+}
+New best val accuracy: 0.3640
+
+Epoch 2/30
+{
+  "epoch": 2,
+  "train_loss": 3.130472849697537,
+  "train_accuracy": 0.26544444445504084,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.6516793083190917,
+  "eval_accuracy": 0.3634,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.023000000000000003
+}
+
+Epoch 3/30
+{
+  "epoch": 3,
+  "train_loss": 3.0656015405019126,
+  "train_accuracy": 0.27815555555025734,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.6070472564697265,
+  "eval_accuracy": 0.3768,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.032
+}
+New best val accuracy: 0.3768
+
+Epoch 4/30
+{
+  "epoch": 4,
+  "train_loss": 3.007678301196628,
+  "train_accuracy": 0.29175555556615196,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.60219785194397,
+  "eval_accuracy": 0.3754,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.041
+}
+
+Epoch 5/30
+{
+  "epoch": 5,
+  "train_loss": 2.9432105291578505,
+  "train_accuracy": 0.30293333333863154,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.5161764190673828,
+  "eval_accuracy": 0.3946,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.05
+}
+New best val accuracy: 0.3946
+
+Epoch 6/30
+{
+  "epoch": 6,
+  "train_loss": 2.8746196595085993,
+  "train_accuracy": 0.31864444443914625,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.520987992477417,
+  "eval_accuracy": 0.3968,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.04980286753286195
+}
+New best val accuracy: 0.3968
+
+Epoch 7/30
+{
+  "epoch": 7,
+  "train_loss": 2.7845810569763185,
+  "train_accuracy": 0.3388444444709354,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.396907767868042,
+  "eval_accuracy": 0.4206,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.04921457902821578
+}
+New best val accuracy: 0.4206
+
+Epoch 8/30
+{
+  "epoch": 8,
+  "train_loss": 2.7060640072716606,
+  "train_accuracy": 0.3583555555714501,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.2967831117630007,
+  "eval_accuracy": 0.4468,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.04824441214720629
+}
+New best val accuracy: 0.4468
+
+Epoch 9/30
+{
+  "epoch": 9,
+  "train_loss": 2.624476831309001,
+  "train_accuracy": 0.37840000000529816,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.2605742237091064,
+  "eval_accuracy": 0.4574,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.046907667001096595
+}
+New best val accuracy: 0.4574
+
+Epoch 10/30
+{
+  "epoch": 10,
+  "train_loss": 2.5601506539238823,
+  "train_accuracy": 0.39177777778837414,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.158473500442505,
+  "eval_accuracy": 0.4946,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0452254248593737
+}
+New best val accuracy: 0.4946
+
+Epoch 11/30
+{
+  "epoch": 11,
+  "train_loss": 2.487041661114163,
+  "train_accuracy": 0.40951111109521654,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.1207121950149537,
+  "eval_accuracy": 0.4956,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0432242156855353
+}
+New best val accuracy: 0.4956
+
+Epoch 12/30
+{
+  "epoch": 12,
+  "train_loss": 2.429753609805637,
+  "train_accuracy": 0.42842222221162585,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.0650447931289673,
+  "eval_accuracy": 0.5124,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.04093559974371725
+}
+New best val accuracy: 0.5124
+
+Epoch 13/30
+{
+  "epoch": 13,
+  "train_loss": 2.3906725281185572,
+  "train_accuracy": 0.4373999999894036,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.040955723762512,
+  "eval_accuracy": 0.5206,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.038395669874474916
+}
+New best val accuracy: 0.5206
+
+Epoch 14/30
+{
+  "epoch": 14,
+  "train_loss": 2.3493894933488635,
+  "train_accuracy": 0.44813333331743876,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 2.0069341611862184,
+  "eval_accuracy": 0.5292,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.03564448228912682
+}
+New best val accuracy: 0.5292
+
+Epoch 15/30
+{
+  "epoch": 15,
+  "train_loss": 2.2911952233632404,
+  "train_accuracy": 0.4623999999841054,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.964609271621704,
+  "eval_accuracy": 0.5398,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.032725424859373686
+}
+New best val accuracy: 0.5398
+
+Epoch 16/30
+{
+  "epoch": 16,
+  "train_loss": 2.253411129506429,
+  "train_accuracy": 0.47551111109521654,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.9545832559585572,
+  "eval_accuracy": 0.5418,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.02968453286464312
+}
+New best val accuracy: 0.5418
+
+Epoch 17/30
+{
+  "epoch": 17,
+  "train_loss": 2.204957052230835,
+  "train_accuracy": 0.49015555555025736,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.8632869157791139,
+  "eval_accuracy": 0.572,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.02656976298823284
+}
+New best val accuracy: 0.5720
+
+Epoch 18/30
+{
+  "epoch": 18,
+  "train_loss": 2.163516896862454,
+  "train_accuracy": 0.5032888888729943,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.845550549697876,
+  "eval_accuracy": 0.5796,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.02343023701176717
+}
+New best val accuracy: 0.5796
+
+Epoch 19/30
+{
+  "epoch": 19,
+  "train_loss": 2.1171260567559136,
+  "train_accuracy": 0.5139333333651225,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.799690611076355,
+  "eval_accuracy": 0.5968,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.02031546713535689
+}
+New best val accuracy: 0.5968
+
+Epoch 20/30
+{
+  "epoch": 20,
+  "train_loss": 2.0699535209655764,
+  "train_accuracy": 0.5251555555555556,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.7585451028823853,
+  "eval_accuracy": 0.6002,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.017274575140626323
+}
+New best val accuracy: 0.6002
+
+Epoch 21/30
+{
+  "epoch": 21,
+  "train_loss": 2.0357705905914307,
+  "train_accuracy": 0.5374888888994853,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.7224760776519776,
+  "eval_accuracy": 0.6136,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.014355517710873185
+}
+New best val accuracy: 0.6136
+
+Epoch 22/30
+{
+  "epoch": 22,
+  "train_loss": 1.9947559233559502,
+  "train_accuracy": 0.5477999999682108,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.692197154045105,
+  "eval_accuracy": 0.622,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.01160433012552508
+}
+New best val accuracy: 0.6220
+
+Epoch 23/30
+{
+  "epoch": 23,
+  "train_loss": 1.954587404039171,
+  "train_accuracy": 0.5590000000423855,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.6750538898468017,
+  "eval_accuracy": 0.6204,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.009064400256282757
+}
+
+Epoch 24/30
+{
+  "epoch": 24,
+  "train_loss": 1.9198968299865722,
+  "train_accuracy": 0.5702444444444444,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.6429947639465332,
+  "eval_accuracy": 0.6314,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.006775784314464718
+}
+New best val accuracy: 0.6314
+
+Epoch 25/30
+{
+  "epoch": 25,
+  "train_loss": 1.8891043777465821,
+  "train_accuracy": 0.5792888888570997,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.6209237436294555,
+  "eval_accuracy": 0.638,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0047745751406263175
+}
+New best val accuracy: 0.6380
+
+Epoch 26/30
+{
+  "epoch": 26,
+  "train_loss": 1.855603645494249,
+  "train_accuracy": 0.5897333333227369,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.6080034900665283,
+  "eval_accuracy": 0.6456,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.003092332998903411
+}
+New best val accuracy: 0.6456
+
+Epoch 27/30
+{
+  "epoch": 27,
+  "train_loss": 1.8329572121090358,
+  "train_accuracy": 0.5971555555555556,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.597118639755249,
+  "eval_accuracy": 0.6502,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0017555878527937166
+}
+New best val accuracy: 0.6502
+
+Epoch 28/30
+{
+  "epoch": 28,
+  "train_loss": 1.8184041984770034,
+  "train_accuracy": 0.6005777778201633,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.5861956687927246,
+  "eval_accuracy": 0.6522,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.000785420971784226
+}
+New best val accuracy: 0.6522
+
+Epoch 29/30
+{
+  "epoch": 29,
+  "train_loss": 1.8048706799401177,
+  "train_accuracy": 0.6043333333121406,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.583100155067444,
+  "eval_accuracy": 0.6514,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.00019713246713805592
+}
+
+Epoch 30/30
+{
+  "epoch": 30,
+  "train_loss": 1.7952791110568576,
+  "train_accuracy": 0.6106222222222222,
+  "train_coarse_loss": 0.0,
+  "eval_split": "val",
+  "eval_loss": 1.579991983985901,
+  "eval_accuracy": 0.6516,
+  "eval_coarse_loss": 0.0,
+  "lr": 0.0
+}
+
+Training finished. Best val accuracy: 0.6522
+Best checkpoint saved to: /content/drive/MyDrive/Colab_CIFAR/checkpoints/se_resnet_from_34pct/best.pt
+>>> Official test with results.py
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+Test accuracy: 0.6517

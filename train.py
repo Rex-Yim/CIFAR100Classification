@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 from pathlib import Path
 
 import torch
@@ -12,6 +13,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from tqdm import tqdm
 
 from model import build_model
+
+
+def _tqdm_disabled() -> bool:
+    return os.environ.get("TQDM_DISABLE", "").lower() in ("1", "true", "yes")
 from utils import (
     accuracy,
     build_cifar100_coarse_groups,
@@ -110,7 +115,7 @@ def train_one_epoch(
     running_acc = 0.0
     running_coarse_loss = 0.0
 
-    for images, targets in tqdm(loader, desc="Train", leave=False):
+    for images, targets in tqdm(loader, desc="Train", leave=False, disable=_tqdm_disabled()):
         images = images.to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
         targets_a, targets_b, lam = targets, targets, 1.0
@@ -178,7 +183,7 @@ def evaluate(
     running_acc = 0.0
     running_coarse_loss = 0.0
 
-    for images, targets in tqdm(loader, desc="Eval ", leave=False):
+    for images, targets in tqdm(loader, desc="Eval ", leave=False, disable=_tqdm_disabled()):
         images = images.to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
 

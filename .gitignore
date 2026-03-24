@@ -8,4 +8,3 @@ checkpoints*/
 runs/
 cloud/*.log
 outputs/
-artifacts/

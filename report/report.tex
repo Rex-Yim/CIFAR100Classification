@@ -11,6 +11,7 @@
 \usepackage{float}
 \usepackage{enumitem}
 \usepackage{caption}
+\graphicspath{{figures/}}
 
 \hypersetup{
     colorlinks=true,
@@ -31,7 +32,7 @@
 \maketitle
 
 \begin{abstract}
-This report presents our final project for MAEG3080: training an image classifier from scratch on CIFAR-100 using PyTorch, without pretrained weights. We use a compact SE-ResNet-style architecture with squeeze-and-excitation blocks. We first train a short baseline with basic augmentations, then finetune from those weights with RandAugment and a held-out validation split. The final model achieves \textbf{65.17\%} accuracy on the official test set, evaluated with an independent \texttt{results.py} script as required by the project.
+This report presents our final project for MAEG3080: training an image classifier from scratch on CIFAR-100 using PyTorch, without pretrained weights. We use a compact SE-ResNet-style architecture with squeeze-and-excitation blocks. We first train a short baseline with basic augmentations, then finetune (Stage~B) with RandAugment and a held-out validation split, obtaining \textbf{65.17\%} official test accuracy. We then apply a third stage (Stage~C): additional finetuning from the Stage~B checkpoint with RandAugment, Mixup/CutMix, and EMA at a lower learning rate. The \textbf{best} model achieves \textbf{68.14\%} on the official test set, evaluated with an independent \texttt{results.py} script as required by the project.
 \end{abstract}
 
 \section{Introduction}
@@ -50,37 +51,39 @@ For finetuning, we hold out $10\%$ of the training labels as a stratified valida
 We use a \textbf{small SE-ResNet} (\texttt{se\_resnet} in our codebase): residual stages with \textbf{squeeze-and-excitation} channel attention, \texttt{base\_width}${}=32$, \textbf{two} residual blocks per stage (\texttt{2$\times$2$\times$2$\times$2}), and global average pooling plus a linear classifier ($100$ classes). This design balances capacity and training time on commodity GPUs.
 
 \subsection{Training Strategy}
-We use a \textbf{two-stage} procedure:
+We use a \textbf{three-stage} procedure:
 \begin{itemize}[leftmargin=1.2em]
     \item \textbf{Stage A (baseline):} $4$ epochs on full training data, \textbf{basic} augmentation (crop, flip), \textbf{no} Mixup/CutMix, SGD (lr $0.1$), warmup $1$ epoch, cosine decay, test-set evaluation each epoch. Produces a $\sim$33\% test checkpoint used as initialization.
-    \item \textbf{Stage B (finetune):} Load weights only (\texttt{--init-from}), \textbf{new} optimizer and cosine schedule. \textbf{RandAugment} ($N{=}2$, $M{=}9$), random erasing ($p{=}0.05$), label smoothing $0.05$, SGD with initial lr $0.05$, warmup $5$ epochs, $30$ epochs total. \textbf{EMA disabled} in both stages for stability. Evaluation during finetuning uses the \textbf{validation} split; the \textbf{official test} is reserved for \texttt{results.py}.
+    \item \textbf{Stage B (finetune):} Load weights only (\texttt{--init-from}), \textbf{new} optimizer and cosine schedule. \textbf{RandAugment} ($N{=}2$, $M{=}9$), random erasing ($p{=}0.05$), label smoothing $0.05$, SGD with initial lr $0.05$, warmup $5$ epochs, $30$ epochs total. \textbf{EMA disabled.} Evaluation during finetuning uses the \textbf{validation} split; the \textbf{official test} is reserved for \texttt{results.py}.
+    \item \textbf{Stage C (improvement):} Starting from the Stage~B \texttt{best.pt}, we run an additional $30$ epochs via \texttt{scripts/iterate\_from\_stageb\_stage\_c\_mixema.sh}: same SE-ResNet backbone, RandAugment ($N{=}2$, $M{=}9$), \textbf{Mixup} ($\alpha{=}0.2$) and \textbf{CutMix} ($\alpha{=}1.0$, mix probability $0.5$), label smoothing $0.05$, SGD with initial lr \textbf{$0.015$}, warmup \textbf{$3$} epochs, cosine decay, batch size $128$, gradient clipping $1.0$, and \textbf{EMA} (decay $0.999$). Train accuracy under mixup is not indicative of clean accuracy; we select by validation accuracy. Run name on Colab: \texttt{sota\_se\_resnet\_exp1}.
 \end{itemize}
 Training uses automatic mixed precision on CUDA where applicable (\texttt{torch.autocast}); checkpoints are written to disk under a configurable save directory.
 
 \subsection{Implementation Details}
-Implementation is in PyTorch (\texttt{train.py}, \texttt{model.py}, \texttt{utils.py}). The Colab path runs \texttt{scripts/quick\_se\_resnet\_results.sh}: baseline if needed, finetune, then \texttt{results.py} on the best finetune checkpoint for the \textbf{final test number}.
+Implementation is in PyTorch (\texttt{train.py}, \texttt{model.py}, \texttt{utils.py}). Stages~A--B are run with \texttt{scripts/quick\_se\_resnet\_results.sh} (baseline if needed, finetune, then \texttt{results.py}). Stage~C is run separately (e.g.\ Colab notebook \texttt{CIFAR\_SOTA.ipynb}) by invoking \texttt{iterate\_from\_stageb\_stage\_c\_mixema.sh} with environment variables for paths, \texttt{RUN\_NAME}, \texttt{EPOCHS}, \texttt{LR}, and \texttt{WARMUP\_EPOCHS}. The \textbf{reported best test number} comes from \texttt{results.py} on the Stage~C \texttt{best.pt}.
 
 \section{Experiments}
 \subsection{Experimental Setup}
-Table~\ref{tab:hyperparameters} summarizes the two stages. Table~\ref{tab:results} reports accuracy.
+Table~\ref{tab:hyperparameters} summarizes Stages~A--C. Table~\ref{tab:results} reports accuracy.
 
 \begin{table}[H]
     \centering
-    \caption{Hyperparameters for the two-stage SE-ResNet pipeline (final submission).}
+    \caption{Hyperparameters for the SE-ResNet pipeline (Stages A--B) and Stage~C improvement.}
     \label{tab:hyperparameters}
-    \begin{tabular}{lll}
+    \begin{tabular}{llll}
         \toprule
-        Setting & Stage A (baseline) & Stage B (finetune) \\
+        Setting & Stage A & Stage B & Stage C \\
         \midrule
-        Epochs & 4 & 30 \\
-        Batch size & 64 & 256 \\
-        Augmentation & Basic (crop, flip) & RandAugment + erasing \\
-        Mixup / CutMix & None & None \\
-        Optimizer & SGD (momentum $0.9$, WD $5\times 10^{-4}$) & Same \\
-        LR schedule & Warmup 1 + cosine & Warmup 5 + cosine \\
-        Initial LR & $0.1$ & $0.05$ \\
-        Label smoothing & $0$ & $0.05$ \\
-        Eval during training & Test ($10{,}000$) & Val ($10\%$ of train) \\
+        Epochs & 4 & 30 & 30 \\
+        Batch size & 64 & 256 & 128 \\
+        Augmentation & Basic (crop, flip) & RandAugment + erasing & RandAugment + erasing \\
+        Mixup / CutMix & None & None & Both ($\alpha$ 0.2 / 1.0, $p{=}0.5$) \\
+        EMA & No & No & Yes ($0.999$) \\
+        Optimizer & SGD (momentum $0.9$, WD $5\times 10^{-4}$) & Same & Same \\
+        LR schedule & Warmup 1 + cosine & Warmup 5 + cosine & Warmup 3 + cosine \\
+        Initial LR & $0.1$ & $0.05$ & $0.015$ \\
+        Label smoothing & $0$ & $0.05$ & $0.05$ \\
+        Eval during training & Test ($10{,}000$) & Val ($10\%$ of train) & Val ($10\%$ of train) \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -88,7 +91,7 @@ Table~\ref{tab:hyperparameters} summarizes the two stages. Table~\ref{tab:result
 \subsection{Results}
 \begin{table}[H]
     \centering
-    \caption{CIFAR-100 accuracy. Official test is from \texttt{results.py} on the finetune checkpoint.}
+    \caption{CIFAR-100 accuracy. Official test numbers are from \texttt{results.py} on the listed checkpoint.}
     \label{tab:results}
     \begin{tabular}{lll}
         \toprule
@@ -96,21 +99,92 @@ Table~\ref{tab:hyperparameters} summarizes the two stages. Table~\ref{tab:result
         \midrule
         A: baseline ($4$ epochs) & Test accuracy & $\approx 33.3\%$ \\
         B: finetune ($30$ epochs) & Best validation & $65.22\%$ \\
-        B: finetune (final) & \textbf{Official test} & \textbf{65.17\%} \\
+        B: finetune & Official test (Stage~B \texttt{best.pt}) & $65.17\%$ \\
+        C: from Stage~B ($30$ epochs) & Best validation & $68.48\%$ \\
+        C: from Stage~B & \textbf{Official test} (Stage~C \texttt{best.pt}) & \textbf{68.14\%} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Validation and test accuracies are aligned ($\sim$65.2\%), indicating that the stratified val split is a reasonable proxy and we do not observe extreme overfitting to the validation fold.
+Stage~B validation and test are aligned ($\sim$65.2\%). Stage~C improves validation to $68.48\%$ (best at epoch~29) and official test to \textbf{68.14\%}, supporting Mixup/CutMix and EMA as effective when finetuning from strong Stage~B weights.
 
-\subsection{Training Curve}
-Loss decreases and accuracy increases monotonically over the short baseline; finetune metrics improve steadily over $30$ epochs. Plots can be generated from \texttt{history.json} in each run directory if required.
+\subsection{Training curves and log summary}
+Figure~\ref{fig:curves} plots per-epoch metrics for Stages~A--B (same run as the Stage~B row in Table~\ref{tab:results}). Stage~A reports accuracy on the \textbf{official test} set each epoch (short baseline); Stage~B reports \textbf{train} and \textbf{validation} accuracy on the $90\%/10\%$ split. The best Stage~B checkpoint (epoch~28, $65.22\%$ val) yields $65.17\%$ official test via \texttt{results.py}.
+
+\paragraph{Stage~C validation trajectory.}
+Table~\ref{tab:logC} lists selected validation accuracies during Stage~C (full per-epoch JSON in our Colab log). Best validation $68.48\%$ occurs at epochs~29--30; we save \texttt{best.pt} and report \textbf{68.14\%} official test.
+
+\begin{table}[H]
+    \centering
+    \caption{Stage~C (\texttt{sota\_se\_resnet\_exp1}): selected validation accuracy by epoch.}
+    \label{tab:logC}
+    \begin{tabular}{cc}
+        \toprule
+        Epoch & Validation accuracy \\
+        \midrule
+        1 & 65.38\% \\
+        10 & 65.90\% \\
+        20 & 67.58\% \\
+        25 & 68.32\% \\
+        28 & 68.40\% \\
+        29 & 68.48\% \\
+        30 & 68.48\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{training_curves_A_B.pdf}
+    \caption{CIFAR-100 SE-ResNet: Stage~A baseline (left, test accuracy) and Stage~B finetune (right, train vs.\ validation). Source log: \texttt{artifacts/colab\_training\_log\_4epoch\_plus\_30\_to\_65pct.txt}. Figure generated with \texttt{scripts/plot\_training\_curves.py}.}
+    \label{fig:curves}
+\end{figure}
+
+\paragraph{Log excerpt.}
+Table~\ref{tab:logA} lists every baseline epoch; Table~\ref{tab:logB} lists selected finetune epochs (full JSON lines in the artifact file).
+
+\begin{table}[H]
+    \centering
+    \caption{Stage~A (baseline): test accuracy per epoch.}
+    \label{tab:logA}
+    \begin{tabular}{cc}
+        \toprule
+        Epoch & Test accuracy \\
+        \midrule
+        1 & 9.12\% \\
+        2 & 17.50\% \\
+        3 & 24.33\% \\
+        4 & 33.32\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Stage~B (finetune): selected epochs (train / validation accuracy). Best val $65.22\%$ at epoch~28.}
+    \label{tab:logB}
+    \begin{tabular}{ccc}
+        \toprule
+        Epoch & Train & Validation \\
+        \midrule
+        1 & 25.44\% & 36.40\% \\
+        5 & 30.29\% & 39.46\% \\
+        10 & 39.18\% & 49.46\% \\
+        15 & 46.24\% & 53.98\% \\
+        20 & 52.52\% & 60.02\% \\
+        25 & 57.93\% & 63.80\% \\
+        28 & 60.06\% & 65.22\% \\
+        30 & 61.06\% & 65.16\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \section{Discussion}
 \begin{itemize}[leftmargin=1.2em]
     \item \textbf{Initialization matters:} Starting from the Stage~A weights gave a large jump over training the finetune recipe from scratch in the same wall-clock budget.
     \item \textbf{RandAugment + longer schedule:} Stronger augmentation and more epochs on top of a sane baseline dominated our earlier attempts with a much larger WRN trained from random initialization in limited time.
-    \item \textbf{Trade-offs:} The SE-ResNet path is faster to iterate than a full Wide-ResNet Hydra ladder; the cost is a lower ceiling than very large models trained for hundreds of epochs.
+    \item \textbf{Stage~C on top of Stage~B:} Treating the $\sim$65\% model as a \emph{base} checkpoint and finetuning with Mixup, CutMix, and EMA at a lower learning rate yielded $\sim$3 percentage points on official test ($65.17\% \rightarrow 68.14\%$), with best validation $68.48\%$.
+    \item \textbf{Trade-offs:} The SE-ResNet path is faster to iterate than a full Wide-ResNet Hydra ladder; the cost is a lower ceiling than very large models trained for hundreds of epochs on CIFAR-100.
 \end{itemize}
 
 \section{Group Contribution}
@@ -123,7 +197,7 @@ Clearly explain how each member contributed to the project.
 \end{itemize}
 
 \section{Conclusion}
-We trained a compact SE-ResNet from scratch on CIFAR-100 using a two-stage baseline-plus-finetune workflow in PyTorch, with RandAugment and careful scheduling on the second stage. Our best model achieves \textbf{65.17\%} test accuracy via \texttt{results.py}. Future work could explore wider networks or longer schedules if compute allows.
+We trained a compact SE-ResNet from scratch on CIFAR-100 using a baseline-plus-finetune workflow (Stages~A--B), then improved the model with a Stage~C finetune (Mixup, CutMix, EMA) from the Stage~B checkpoint. Our \textbf{best} model achieves \textbf{68.14\%} official test accuracy via \texttt{results.py}, with Stage~B alone at \textbf{65.17\%}. Future work could explore longer schedules or wider architectures if compute allows.
 
 \section*{References}
 \begin{enumerate}[leftmargin=1.5em]

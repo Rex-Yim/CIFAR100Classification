@@ -62,6 +62,8 @@ Commands:
   select-best  Compare c/d/e and print JSON winner
   final        Auto pick BEST_RUN from select-best, then run-f (full train + test)
   results PATH Run results.py on a checkpoint (default: SAVE_DIR/hydra_run_f_final/best.pt)
+  stage-c      Stage C (Mixup/CutMix/EMA) from Stage B `se_resnet_from_34pct/best.pt`
+               (same as `scripts/iterate_from_stageb_stage_c_mixema.sh`). Override INIT_CKPT, EPOCHS, RUN_NAME.
 
 Examples:
   bash scripts/local_runner.sh install
@@ -71,6 +73,7 @@ Examples:
   bash scripts/local_runner.sh select-best
   bash scripts/local_runner.sh final
   bash scripts/local_runner.sh results checkpoints/hydra_run_f_final/best.pt
+  INIT_CKPT=checkpoints/se_resnet_from_34pct/best.pt bash scripts/local_runner.sh stage-c
 EOF
 }
 
@@ -148,6 +151,14 @@ PY
       --num-workers "$NUM_WORKERS" \
       --device "$DEVICE" \
       "$@"
+    ;;
+  stage-c)
+    export INIT_CKPT="${INIT_CKPT:-$SAVE_DIR/se_resnet_from_34pct/best.pt}"
+    export RUN_NAME="${RUN_NAME:-se_resnet_stage_c_from65}"
+    export EPOCHS="${EPOCHS:-30}"
+    export LR="${LR:-0.015}"
+    export WARMUP_EPOCHS="${WARMUP_EPOCHS:-3}"
+    exec bash "$ROOT_DIR/scripts/iterate_from_stageb_stage_c_mixema.sh" "$@"
     ;;
   *)
     echo "Unknown command: $cmd" >&2

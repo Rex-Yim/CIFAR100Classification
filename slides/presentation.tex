@@ -27,6 +27,7 @@
         \item Train an image classifier on CIFAR-100 using PyTorch \emph{from scratch} (no pretrained weights)
         \item Use a compact \textbf{SE-ResNet} with squeeze-and-excitation blocks
         \item Two-stage pipeline: short baseline $\rightarrow$ finetune with RandAugment
+        \item \textbf{Stage C:} further finetune from Stage~B with Mixup, CutMix, EMA (lower LR)
         \item Report official test accuracy using \texttt{results.py}
     \end{itemize}
 \end{frame}
@@ -52,8 +53,9 @@
     \begin{itemize}
         \item \textbf{Stage A:} 4 epochs, basic aug (crop, flip), SGD, $\sim$33\% test checkpoint
         \item \textbf{Stage B:} Load weights (\texttt{--init-from}), RandAugment, 30 epochs, lr 0.05
-        \item Label smoothing (0.05) in finetune; Mixup/CutMix not used in final path
-        \item AMP on GPU; checkpoints saved to disk / Google Drive on Colab
+        \item \textbf{Stage C:} From Stage~B \texttt{best.pt}, 30 epochs, lr 0.015, warmup 3, batch 128
+        \item Stage~C: Mixup/CutMix + RandAugment + EMA; script \texttt{iterate\_from\_stageb\_stage\_c\_mixema.sh}
+        \item AMP on GPU; checkpoints on Google Drive (Colab); run name \texttt{sota\_se\_resnet\_exp1}
     \end{itemize}
 \end{frame}
 
@@ -73,20 +75,31 @@
             Setting & Accuracy \\
             \midrule
             Baseline (4 epochs, test eval) & $\approx 33.3\%$ \\
-            Best validation (finetune) & 65.22\% \\
-            \textbf{Official test (final)} & \textbf{65.17\%} \\
+            Stage~B best val (epoch 28) & 65.22\% \\
+            \textbf{Official test (Stage~B)} & \textbf{65.17\%} \\
+            Stage~C best val (epoch 29) & 68.48\% \\
+            \textbf{Official test (Stage~C)} & \textbf{68.14\%} \\
             \bottomrule
         \end{tabular}
     \end{table}
     \vspace{0.5em}
-    \small Final number from \texttt{results.py} on finetuned checkpoint.
+    \small Best row: \texttt{results.py} on Stage~C \texttt{sota\_se\_resnet\_exp1/best.pt}.
+\end{frame}
+
+\begin{frame}{Training curves (Colab run)}
+    \centering
+    \includegraphics[width=0.92\linewidth]{../report/figures/training_curves_A_B.pdf}
+    \vspace{0.3em}
+
+    \small Left: Stage~A test accuracy; right: Stage~B train vs.\ val ($30$ epochs). Best val at epoch~28.
 \end{frame}
 
 \begin{frame}{What Worked}
     \begin{itemize}
         \item Initializing from a stable short baseline before strong augmentation
-        \item RandAugment + longer finetune schedule on top of Stage~A
-        \item Holding out a validation split for model selection; test only at the end
+        \item RandAugment + longer finetune schedule on top of Stage~A ($\sim$65\% test)
+        \item Stage~C: Mixup/CutMix + EMA finetune from Stage~B ($\sim$68\% test)
+        \item Validation split for selection; official test only via \texttt{results.py}
     \end{itemize}
 \end{frame}
 
@@ -108,9 +121,9 @@
 
 \begin{frame}{Conclusion}
     \begin{itemize}
-        \item Two-stage SE-ResNet training from scratch
-        \item \textbf{65.17\%} official test accuracy on CIFAR-100
-        \item Independent \texttt{results.py} evaluation for final submission
+        \item SE-ResNet from scratch: baseline $\rightarrow$ Stage~B $\rightarrow$ Stage~C
+        \item \textbf{68.14\%} official test (Stage~C); \textbf{65.17\%} after Stage~B only
+        \item Independent \texttt{results.py} evaluation for final numbers
     \end{itemize}
 \end{frame}
 

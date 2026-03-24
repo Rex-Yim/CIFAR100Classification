@@ -36,18 +36,22 @@ else
   echo ">>> Using existing baseline: $BASE_PT"
 fi
 
-echo ">>> Finetune from baseline: $EPOCHS epochs → $FINAL_RUN"
-env \
-  PYTHON_BIN="$PYTHON_BIN" \
-  DATA_DIR="$DATA_DIR" \
-  SAVE_DIR="$SAVE_DIR" \
-  DEVICE="$DEVICE" \
-  NUM_WORKERS="$NUM_WORKERS" \
-  BATCH_SIZE="$BATCH_SIZE" \
-  INIT_CKPT="$BASE_PT" \
-  RUN_NAME="$FINAL_RUN" \
-  EPOCHS="$EPOCHS" \
-  bash "$ROOT_DIR/scripts/iterate_from_34pct.sh"
+if [[ -f "$FINAL_PT" ]]; then
+  echo ">>> Using existing Stage B checkpoint: $FINAL_PT — skipping finetune (delete it to retrain)"
+else
+  echo ">>> Finetune from baseline: $EPOCHS epochs → $FINAL_RUN"
+  env \
+    PYTHON_BIN="$PYTHON_BIN" \
+    DATA_DIR="$DATA_DIR" \
+    SAVE_DIR="$SAVE_DIR" \
+    DEVICE="$DEVICE" \
+    NUM_WORKERS="$NUM_WORKERS" \
+    BATCH_SIZE="$BATCH_SIZE" \
+    INIT_CKPT="$BASE_PT" \
+    RUN_NAME="$FINAL_RUN" \
+    EPOCHS="$EPOCHS" \
+    bash "$ROOT_DIR/scripts/iterate_from_34pct.sh"
+fi
 
 echo ">>> Official test with results.py"
 exec "$PYTHON_BIN" "$ROOT_DIR/results.py" \
