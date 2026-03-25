@@ -89,6 +89,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--blocks-per-stage", type=int, nargs=4, default=[3, 4, 6, 3])
     parser.add_argument("--drop-path-rate", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--early-stopping-patience",
+        type=int,
+        default=0,
+        metavar="N",
+        help="Stop after N consecutive epochs without validation improvement (0 = disabled). "
+        "Compares eval accuracy each epoch; use with a large --epochs as a cap.",
+    )
     return parser.parse_args()
 
 
@@ -475,7 +483,13 @@ def main() -> None:
         print(f"Hierarchical loss enabled with weight {args.coarse_loss_weight:.2f}", flush=True)
     if args.num_threads > 0:
         print(f"CPU threads: {args.num_threads}", flush=True)
+    if args.early_stopping_patience > 0:
+        print(
+            f"Early stopping: patience={args.early_stopping_patience} epochs (max {args.epochs})",
+            flush=True,
+        )
 
+    epochs_no_improve = 0
     for epoch in range(start_epoch, args.epochs + 1):
         print(f"\nEpoch {epoch}/{args.epochs}", flush=True)
         train_loss, train_acc, train_coarse_loss = train_one_epoch(
@@ -536,7 +550,8 @@ def main() -> None:
             history=history,
         )
 
-        if eval_acc > best_eval_accuracy:
+        improved = eval_acc > best_eval_accuracy
+        if improved:
             best_eval_accuracy = eval_acc
             save_checkpoint(
                 save_path=best_path,
@@ -553,6 +568,19 @@ def main() -> None:
             print(f"New best {data_info['eval_split']} accuracy: {best_eval_accuracy:.4f}", flush=True)
 
         history_path.write_text(json.dumps(history, indent=2))
+
+        if args.early_stopping_patience > 0:
+            if improved:
+                epochs_no_improve = 0
+            else:
+                epochs_no_improve += 1
+                if epochs_no_improve >= args.early_stopping_patience:
+                    print(
+                        f"\nEarly stopping: no {data_info['eval_split']} improvement for "
+                        f"{args.early_stopping_patience} consecutive epochs (best {best_eval_accuracy:.4f}).",
+                        flush=True,
+                    )
+                    break
 
     print(
         f"\nTraining finished. Best {data_info['eval_split']} accuracy: {best_eval_accuracy:.4f}",

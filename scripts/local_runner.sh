@@ -63,7 +63,10 @@ Commands:
   final        Auto pick BEST_RUN from select-best, then run-f (full train + test)
   results PATH Run results.py on a checkpoint (default: SAVE_DIR/hydra_run_f_final/best.pt)
   stage-c      Stage C (Mixup/CutMix/EMA) from Stage B `se_resnet_from_34pct/best.pt`
-               (same as `scripts/iterate_from_stageb_stage_c_mixema.sh`). Override INIT_CKPT, EPOCHS, RUN_NAME.
+               (same as `scripts/iterate_from_stageb_stage_c_mixema.sh`). Override INIT_CKPT, EPOCHS,
+               EARLY_STOP_PATIENCE, RUN_NAME.
+  stage-d      Stage D from Stage C `best.pt` (same as `scripts/iterate_from_stagec_stage_d.sh`).
+               Override INIT_CKPT, RUN_NAME, LR, EPOCHS, EARLY_STOP_PATIENCE.
 
 Examples:
   bash scripts/local_runner.sh install
@@ -74,6 +77,7 @@ Examples:
   bash scripts/local_runner.sh final
   bash scripts/local_runner.sh results checkpoints/hydra_run_f_final/best.pt
   INIT_CKPT=checkpoints/se_resnet_from_34pct/best.pt bash scripts/local_runner.sh stage-c
+  INIT_CKPT=checkpoints/se_resnet_stage_c_from65/best.pt bash scripts/local_runner.sh stage-d
 EOF
 }
 
@@ -155,10 +159,20 @@ PY
   stage-c)
     export INIT_CKPT="${INIT_CKPT:-$SAVE_DIR/se_resnet_from_34pct/best.pt}"
     export RUN_NAME="${RUN_NAME:-se_resnet_stage_c_from65}"
-    export EPOCHS="${EPOCHS:-30}"
+    export EPOCHS="${EPOCHS:-150}"
+    export EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-12}"
     export LR="${LR:-0.015}"
     export WARMUP_EPOCHS="${WARMUP_EPOCHS:-3}"
     exec bash "$ROOT_DIR/scripts/iterate_from_stageb_stage_c_mixema.sh" "$@"
+    ;;
+  stage-d)
+    export INIT_CKPT="${INIT_CKPT:-$SAVE_DIR/se_resnet_stage_c_from65/best.pt}"
+    export RUN_NAME="${RUN_NAME:-se_resnet_stage_d_from_stagec}"
+    export EPOCHS="${EPOCHS:-120}"
+    export EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-12}"
+    export LR="${LR:-0.008}"
+    export WARMUP_EPOCHS="${WARMUP_EPOCHS:-2}"
+    exec bash "$ROOT_DIR/scripts/iterate_from_stagec_stage_d.sh" "$@"
     ;;
   *)
     echo "Unknown command: $cmd" >&2

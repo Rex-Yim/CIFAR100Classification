@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
-# Stage C from Stage B (~65%): init from se_resnet_from_34pct/best.pt + Mixup/CutMix + EMA.
-# Uses a *lower* LR than training from the ~34% baseline so you do not destroy good weights.
+# Stage D: continue from Stage C `best.pt` (same recipe as Stage C, typically lower LR).
+# Run after Stage C has converged (early-stopped or reached max epochs).
 #
-# Requires: checkpoints/se_resnet_from_34pct/best.pt (run quick_se_resnet_results.sh first).
-#
-# Example (Colab / Drive):
-#   INIT_CKPT="$SAVE_DIR/se_resnet_from_34pct/best.pt" \
-#   RUN_NAME=se_resnet_stage_c_from65 EPOCHS=150 EARLY_STOP_PATIENCE=12 LR=0.015 \
-#   bash scripts/iterate_from_stageb_stage_c_mixema.sh
-#
-# Trains up to EPOCHS but stops early if validation accuracy plateaus (EARLY_STOP_PATIENCE
-# consecutive epochs without improvement). Set EARLY_STOP_PATIENCE=0 to disable.
+# Example:
+#   INIT_CKPT="$SAVE_DIR/se_resnet_stage_c_from65/best.pt" \
+#   RUN_NAME=se_resnet_stage_d_from_stagec EPOCHS=120 EARLY_STOP_PATIENCE=12 LR=0.008 \
+#   bash scripts/iterate_from_stagec_stage_d.sh
 #
 set -euo pipefail
 
@@ -22,16 +17,16 @@ DEVICE="${DEVICE:-cuda}"
 NUM_WORKERS="${NUM_WORKERS:-4}"
 BATCH_SIZE="${BATCH_SIZE:-128}"
 
-INIT_CKPT="${INIT_CKPT:-$SAVE_DIR/se_resnet_from_34pct/best.pt}"
-RUN_NAME="${RUN_NAME:-se_resnet_stage_c_from65}"
-EPOCHS="${EPOCHS:-150}"
+INIT_CKPT="${INIT_CKPT:-$SAVE_DIR/se_resnet_stage_c_from65/best.pt}"
+RUN_NAME="${RUN_NAME:-se_resnet_stage_d_from_stagec}"
+EPOCHS="${EPOCHS:-120}"
 EARLY_STOP_PATIENCE="${EARLY_STOP_PATIENCE:-12}"
-LR="${LR:-0.015}"
-WARMUP_EPOCHS="${WARMUP_EPOCHS:-3}"
+LR="${LR:-0.008}"
+WARMUP_EPOCHS="${WARMUP_EPOCHS:-2}"
 
 if [[ ! -f "$INIT_CKPT" ]]; then
-  echo "Missing Stage B checkpoint: $INIT_CKPT" >&2
-  echo "Train Stage B first (quick_se_resnet_results.sh) or set INIT_CKPT=..." >&2
+  echo "Missing Stage C checkpoint: $INIT_CKPT" >&2
+  echo "Finish Stage C first or set INIT_CKPT=..." >&2
   exit 1
 fi
 

@@ -5,7 +5,7 @@ Train on **Google Colab** with checkpoints on **Drive**. Local training does not
 ## Files
 
 - **`CIFAR_Quick.ipynb`** — minimal: setup + **SE-ResNet quick path** via `scripts/quick_se_resnet_results.sh` (baseline → Stage B → official test, ~65% when training completes).
-- **`CIFAR_SOTA.ipynb`** — **separate** notebook to **improve** beyond Stage B: assumes `se_resnet_from_34pct/best.pt` on Drive; editable Stage C–style runs (`RUN_NAME`, `EPOCHS`, `LR`, …) + official test. Does **not** re-run the full baseline.
+- **`CIFAR_SOTA.ipynb`** — **separate** notebook to **improve** beyond Stage B: assumes `se_resnet_from_34pct/best.pt` on Drive; **Stage C** (max `EPOCHS`, optional early stop via `EARLY_STOP_PATIENCE`) and optional **Stage D** (from Stage C `best.pt`) + official test. Does **not** re-run the full baseline.
 - **`prepare_colab_bundle.sh`** — run on your machine to build the tarball Colab unpacks (includes both notebooks).
 
 ## Bundle (on your Mac)
@@ -26,9 +26,9 @@ That last cell runs `scripts/quick_se_resnet_results.sh` (4-epoch baseline if mi
 
 Data and checkpoints live under **`My Drive/Colab_CIFAR/`** (`data/`, `checkpoints/`).
 
-## Stage C (optional)
+## Stage C and Stage D (optional)
 
-**Preferred for experiments:** open **`CIFAR_SOTA.ipynb`** (tunable hyperparameters, separate `RUN_NAME` per run).
+**Preferred:** open **`CIFAR_SOTA.ipynb`** (Stage C with `EPOCHS` cap + `EARLY_STOP_PATIENCE`, optional Stage D cell, separate `RUN_NAME` per run). Re-run **`colab/prepare_colab_bundle.sh`** after pulling changes so the tarball includes `iterate_from_stagec_stage_d.sh` and updated Stage C defaults.
 
 Or, after **`se_resnet_from_34pct/best.pt`** exists on Drive, run in a **new code cell** in `CIFAR_Quick` (project root is already `os.chdir` from unpack):
 
@@ -39,11 +39,14 @@ assert STAGE_B.is_file(), STAGE_B
 env = {**os.environ, 'PYTHONUNBUFFERED': '1', 'PYTHON_BIN': sys.executable,
        'DATA_DIR': str(DATA_DIR), 'SAVE_DIR': str(SAVE_DIR), 'DEVICE': os.environ['DEVICE'],
        'NUM_WORKERS': os.environ.get('NUM_WORKERS', '2'), 'INIT_CKPT': str(STAGE_B),
-       'RUN_NAME': 'se_resnet_stage_c_from65', 'EPOCHS': '30', 'LR': '0.015', 'WARMUP_EPOCHS': '3'}
+       'RUN_NAME': 'se_resnet_stage_c_from65', 'EPOCHS': '150', 'EARLY_STOP_PATIENCE': '12',
+       'LR': '0.015', 'WARMUP_EPOCHS': '3'}
 subprocess.run(['bash', 'scripts/iterate_from_stageb_stage_c_mixema.sh'], env=env, check=True)
 ```
 
-Then evaluate with `results.py` on `checkpoints/se_resnet_stage_c_from65/best.pt`.
+Set `EARLY_STOP_PATIENCE` to `'0'` to disable early stopping. Then evaluate with `results.py` on `checkpoints/<RUN_NAME>/best.pt`.
+
+**Stage D** (after Stage C): `bash scripts/iterate_from_stagec_stage_d.sh` with `INIT_CKPT` pointing at Stage C `best.pt` — see `CIFAR_SOTA.ipynb` or `bash scripts/local_runner.sh stage-d`.
 
 **Locally (Mac / Linux):** from repo root, with Stage B at `checkpoints/se_resnet_from_34pct/best.pt`:
 

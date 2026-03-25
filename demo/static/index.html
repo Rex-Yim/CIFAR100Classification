@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CIFAR-100 classifier demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>CIFAR-100 <span>classifier</span></h1>
+      <p class="sub">
+        Click a <strong>sample</strong> (real 32×32 CIFAR-100 test crops) or upload your own image — the model
+        predicts one of 100 fine-grained classes.
+      </p>
+
+      <div class="panel">
+        <div class="samples-block" id="samplesBlock" hidden>
+          <h2>Try a sample</h2>
+          <div class="samples-grid" id="samplesGrid"></div>
+        </div>
+        <p class="or-divider" id="orDivider" hidden>— or upload —</p>
+        <div class="drop" id="drop" tabindex="0">
+          <p><strong>Drop an image</strong> here or click to choose</p>
+          <p>PNG or JPEG · max 8 MB</p>
+          <button type="button" class="btn" id="pickBtn">Choose file</button>
+          <input type="file" id="file" accept="image/png,image/jpeg,image/webp" />
+        </div>
+        <p class="err" id="err" hidden></p>
+        <div class="preview-row" id="previewRow" style="margin-top: 1.25rem; display: none">
+          <img id="thumb" alt="Preview" width="128" height="128" />
+          <div class="results" id="results">
+            <h2>Top predictions</h2>
+            <div id="bars"></div>
+          </div>
+        </div>
+        <p class="note" id="note"></p>
+        <div class="meta" id="meta">Loading server info…</div>
+      </div>
+    </div>
+    <script>
+      const drop = document.getElementById("drop");
+      const fileInput = document.getElementById("file");
+      const pickBtn = document.getElementById("pickBtn");
+      const err = document.getElementById("err");
+      const thumb = document.getElementById("thumb");
+      const previewRow = document.getElementById("previewRow");
+      const bars = document.getElementById("bars");
+      const noteEl = document.getElementById("note");
+      const metaEl = document.getElementById("meta");
+      const samplesBlock = document.getElementById("samplesBlock");
+      const samplesGrid = document.getElementById("samplesGrid");
+      const orDivider = document.getElementById("orDivider");
+
+      fetch("/api/info")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) {
+            metaEl.innerHTML =
+              '<span style="color:var(--danger)">' +
+              escapeHtml(d.error) +
+              "</span><br />Set <code>CHECKPOINT=/path/to/best.pt</code> when starting the server.";
+            return;
+          }
+          metaEl.innerHTML =
+            "Checkpoint: <code>" +
+            escapeHtml(d.checkpoint || "") +
+            "</code><br />Device: <code>" +
+            escapeHtml(d.device || "") +
+            "</code> · " +
+            (d.num_classes || 100) +
+            " classes";
+        })
+        .catch(() => {
+          metaEl.textContent = "Could not reach API (is the server running?)";
+        });
+
+      fetch("/api/samples")
+        .then((r) => r.json())
+        .then((d) => {
+          const list = d.samples || [];
+          if (list.length === 0) return;
+          orDivider.hidden = false;
+          samplesBlock.hidden = false;
+          for (const s of list) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "sample-tile";
+            b.title = s.name.replace(/\.png$/i, "").replace(/^\d+_/, "");
+            b.innerHTML = '<img src="' + escapeAttr(s.url) + '" alt="" width="32" height="32" loading="lazy" />';
+            b.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              loadSample(s.url, s.name);
+            });
+            samplesGrid.appendChild(b);
+          }
+        })
+        .catch(() => {});
+
+      function escapeHtml(s) {
+        const t = document.createElement("div");
+        t.textContent = s;
+        return t.innerHTML;
+      }
+      function escapeAttr(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+      }
+
+      pickBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+      drop.addEventListener("click", () => fileInput.click());
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("dragover");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("dragover"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f) upload(f);
+      });
+      fileInput.addEventListener("change", () => {
+        const f = fileInput.files[0];
+        if (f) upload(f);
+      });
+
+      async function loadSample(url, filename) {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: blob.type || "image/png" });
+        upload(file);
+      }
+
+      async function upload(file) {
+        err.hidden = true;
+        bars.innerHTML = "";
+        noteEl.textContent = "";
+        const fd = new FormData();
+        fd.append("file", file);
+        const url = URL.createObjectURL(file);
+        thumb.src = url;
+        thumb.classList.add("visible");
+        previewRow.style.display = "flex";
+
+        try {
+          const res = await fetch("/api/predict", { method: "POST", body: fd });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const d = data.detail;
+            const msg =
+              typeof d === "string"
+                ? d
+                : Array.isArray(d)
+                  ? d.map((x) => x.msg || x).join(" ")
+                  : res.statusText;
+            throw new Error(msg);
+          }
+          if (data.note) noteEl.textContent = data.note;
+          for (const p of data.predictions) {
+            const pct = (100 * p.probability).toFixed(1);
+            const row = document.createElement("div");
+            row.innerHTML =
+              '<div class="bar-row"><span class="name">' +
+              escapeHtml(p.label) +
+              '</span><span class="pct">' +
+              pct +
+              "%</span></div>" +
+              '<div class="bar-bg"><div class="bar-fill" style="width:' +
+              pct +
+              '%"></div></div>';
+            bars.appendChild(row);
+          }
+        } catch (e) {
+          err.textContent =
+            e.message ||
+            (typeof e === "string" ? e : "Request failed — check the server log.");
+          err.hidden = false;
+        }
+      }
+    </script>
+  </body>
+</html>
