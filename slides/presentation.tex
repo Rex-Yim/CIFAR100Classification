@@ -1,135 +1,177 @@
 \documentclass[aspectratio=169]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+% Modern theme (minimal, high-contrast; widely available in TeX Live / Tectonic)
+\usetheme{metropolis}
+\metroset{
+    sectionpage=none,
+    progressbar=foot,
+    numbering=none,
+    block=fill,
+}
+
 \setbeamertemplate{navigation symbols}{}
 
 \usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{xurl}
 \usepackage{hyperref}
 
-\title{MAEG3080 Final Project}
-\subtitle{CIFAR-100 Image Classification (SE-ResNet, PyTorch)}
+% Accent: teal/cyan (distinct from generic blue)
+\definecolor{mAccent}{HTML}{0D9488}
+\definecolor{mDark}{HTML}{134E4A}
+% Frame header bar is dark — use light fg. Title page stays Metropolis default (light bg) — use dark fg.
+\setbeamercolor{frametitle}{fg=white}
+\setbeamercolor{framesubtitle}{fg=white!82}
+\setbeamercolor{progress bar}{fg=mAccent,bg=mDark!15}
+\setbeamercolor{title}{fg=mDark}
+\setbeamercolor{subtitle}{fg=mDark!88!black}
+\setbeamercolor{author}{fg=black!78}
+\setbeamercolor{institute}{fg=black!62}
+\setbeamercolor{date}{fg=black!62}
+\setbeamercolor{alerted text}{fg=mAccent!90!black}
+
+\title{MAEG3080 Fundamentals of Machine Intelligence}
+\subtitle{\small CIFAR-100 · Custom PyTorch SE-ResNet · Final Project}
 \author{Rex Yim (Yim Fu Chong) \\ \url{1155176974@link.cuhk.edu.hk}}
 \institute{The Chinese University of Hong Kong}
 \date{March 25, 2026}
 
 \begin{document}
 
-\begin{frame}
+\begin{frame}[plain]
+    \vspace*{-10pt}
     \titlepage
 \end{frame}
 
-\begin{frame}{Project Objective}
+\begin{frame}{Goal}
     \begin{itemize}
-        \item Train an image classifier on CIFAR-100 using PyTorch \emph{from scratch} (no pretrained weights)
-        \item Use a compact \textbf{SE-ResNet} with squeeze-and-excitation blocks
-        \item Two-stage pipeline: short baseline $\rightarrow$ finetune with RandAugment
-        \item \textbf{Stage C:} further finetune from Stage~B with Mixup, CutMix, EMA (lower LR)
-        \item Report official test accuracy using \texttt{results.py}
+        \item Classify \textbf{CIFAR-100} with PyTorch \emph{from scratch} (no pretrained weights)
+        \item Compact \textbf{SE-ResNet} (squeeze-and-excitation attention)
+        \item Pipeline: baseline $\rightarrow$ RandAugment finetune $\rightarrow$ Stage~C (Mixup/CutMix/EMA)
+        \item Final accuracy from course script \texttt{results.py}
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Dataset}
-    \begin{itemize}
-        \item CIFAR-100: 60,000 color images ($32 \times 32$)
-        \item 100 fine-grained classes; 600 images per class
-        \item 50,000 train / 10,000 test (official)
-        \item Finetuning: 90\% train / 10\% stratified val (seed 42)
-    \end{itemize}
+\begin{frame}{Dataset (quick facts)}
+    \begin{columns}[T,onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Scale}
+                60k images · $32{\times}32$ RGB \\
+                100 classes · 600 / class
+            \end{block}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Splits}
+                50k train / 10k test \\
+                Finetune: 90\% / 10\% val (seed 42)
+            \end{block}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{Model}
     \begin{itemize}
-        \item SE-ResNet-style CNN (\texttt{se\_resnet}): residual blocks + SE attention
-        \item Small configuration: base width 32; 2 blocks per stage
-        \item Global average pooling $\rightarrow$ linear classifier (100 classes)
+        \item \texttt{se\_resnet}: residual blocks + \textbf{SE} channel attention
+        \item Base width 32 · 2 blocks per stage · GAP $\rightarrow$ 100-way linear
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Training Pipeline}
-    \begin{itemize}
-        \item \textbf{Stage A:} 4 epochs, basic aug (crop, flip), SGD, $\sim$33\% test checkpoint
-        \item \textbf{Stage B:} Load weights (\texttt{--init-from}), RandAugment, 30 epochs, lr 0.05
-        \item \textbf{Stage C:} From Stage~B \texttt{best.pt}, 30 epochs, lr 0.015, warmup 3, batch 128
-        \item Stage~C: Mixup/CutMix + RandAugment + EMA; script \texttt{iterate\_from\_stageb\_stage\_c\_mixema.sh}
-        \item AMP on GPU; checkpoints on Google Drive (Colab); run name \texttt{sota\_se\_resnet\_exp1}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Implementation Workflow}
-    \begin{enumerate}
-        \item Train baseline (or reuse checkpoint) $\rightarrow$ \texttt{best.pt}
-        \item Finetune with \texttt{iterate\_from\_34pct.sh} / quick script
-        \item Evaluate with \texttt{results.py} on official test set
-    \end{enumerate}
-\end{frame}
-
-\begin{frame}{Results (CIFAR-100)}
-    \begin{table}
-        \centering
-        \begin{tabular}{ll}
-            \toprule
-            Setting & Accuracy \\
-            \midrule
-            Baseline (4 epochs, test eval) & $\approx 33.3\%$ \\
-            Stage~B best val (epoch 28) & 65.22\% \\
-            \textbf{Official test (Stage~B)} & \textbf{65.17\%} \\
-            Stage~C best val (epoch 29) & 68.48\% \\
-            \textbf{Official test (Stage~C)} & \textbf{68.14\%} \\
-            \bottomrule
-        \end{tabular}
-    \end{table}
+\begin{frame}{Three-stage training}
+    \begin{description}
+        \item[Stage A] 4 epochs · basic aug · $\sim$33\% test checkpoint
+        \item[Stage B] Init from Stage~A · RandAugment · 30 epochs · val selection
+        \item[Stage C] From Stage~B \texttt{best.pt} · Mixup/CutMix · EMA · lower LR
+    \end{description}
     \vspace{0.5em}
-    \small Best row: \texttt{results.py} on Stage~C \texttt{sota\_se\_resnet\_exp1/best.pt}.
+    \small \path{scripts/iterate_from_stageb_stage_c_mixema.sh} · Colab · AMP
 \end{frame}
 
-\begin{frame}{Training curves (Colab run)}
+\begin{frame}{Results}
     \centering
-    \includegraphics[width=0.92\linewidth]{../report/figures/training_curves_A_B.pdf}
-    \vspace{0.3em}
+    \begin{tabular}{@{}lr@{}}
+        \toprule
+        \textbf{Setting} & \textbf{Accuracy} \\
+        \midrule
+        Stage~A baseline (4 ep., test) & $\approx 33.3\%$ \\
+        Stage~B official test & \textbf{65.17\%} \\
+        Stage~C official test & \textbf{\alert{68.14\%}} \\
+        \bottomrule
+    \end{tabular}
 
-    \small Left: Stage~A test accuracy; right: Stage~B train vs.\ val ($30$ epochs). Best val at epoch~28.
+    \vspace{1em}
+    \begin{alertblock}{Best model}
+        Stage~C checkpoint \texttt{sota\_se\_resnet\_exp1/best.pt} · evaluated with \texttt{results.py}
+    \end{alertblock}
 \end{frame}
 
-\begin{frame}{What Worked}
+\begin{frame}{Training curves}
+    \centering
+    \includegraphics[width=0.98\linewidth]{../report/figures/training_curves_A_B_C.pdf}
+
+    \vspace{0.3em}
+    \small (a) Test · (b) train vs val · (c) Stage~C (mixed-batch train acc. not directly comparable)
+\end{frame}
+
+\begin{frame}[t]{Interactive demo (local)}
+    \footnotesize
     \begin{itemize}
-        \item Initializing from a stable short baseline before strong augmentation
-        \item RandAugment + longer finetune schedule on top of Stage~A ($\sim$65\% test)
-        \item Stage~C: Mixup/CutMix + EMA finetune from Stage~B ($\sim$68\% test)
-        \item Validation split for selection; official test only via \texttt{results.py}
+        \item \texttt{demo/} FastAPI: upload $\rightarrow$ top-$k$ classes (SE-ResNet + \texttt{best.pt})
+        \item Run: \texttt{uvicorn demo.app:app --port 8765} · \texttt{http://127.0.0.1:8765}
+    \end{itemize}
+    \vspace{0.15em}
+    \begin{columns}[T,onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \IfFileExists{../report/figures/demo_ui.png}{%
+                \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{../report/figures/demo_ui.png}%
+            }{%
+                \textit{Add \texttt{report/figures/demo\_ui.png}}%
+            }
+        \end{column}
+        \begin{column}{0.50\textwidth}
+            \IfFileExists{../report/figures/demo_two_panels.png}{%
+                \includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{../report/figures/demo_two_panels.png}%
+            }{%
+                \textit{Run \texttt{scripts/render\_demo\_slide\_panels.py}}%
+            }
+        \end{column}
+    \end{columns}
+    \vspace{0.2em}
+    \tiny\textit{Right:} auto-picked from shipped samples --- \textbf{strong} (highest top-1 conf.) vs.\ \textbf{weak} (lowest top-1); filenames under crops; same checkpoint as UI.
+\end{frame}
+
+\begin{frame}{What worked}
+    \begin{itemize}
+        \item Stable Stage~A init before heavy augmentation
+        \item RandAugment + longer schedule (Stage~B $\approx$ 65\% test)
+        \item Stage~C on top of Stage~B: Mixup/CutMix + EMA ($\approx$ 68\% test)
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Challenges}
     \begin{itemize}
-        \item CIFAR-100 is hard: many similar classes, small images
-        \item Large WRN / multi-hundred-epoch runs are costly on free Colab
-        \item SE-ResNet path trades some ceiling for faster iteration and reliable gains
+        \item CIFAR-100 is fine-grained and small-input hard
+        \item Long / huge models costly on free Colab
+        \item SE-ResNet: faster iteration vs.\ lower ceiling than giant WRNs
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Individual contribution}
+\begin{frame}{Contribution}
     \begin{itemize}
-        \item Single-author project: preprocessing, augmentations, model code, training pipeline, Colab workflow
-        \item Result analysis, report, and slides
-        \item Development: Codex $\rightarrow$ Cursor; Stages~B \&~C on Colab (NVIDIA GPU)
+        \item Single author: data, model, training, Colab, report, slides
+        \item Tools: Codex $\rightarrow$ Cursor · GPU on Colab
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Conclusion}
-    \begin{itemize}
-        \item SE-ResNet from scratch: baseline $\rightarrow$ Stage~B $\rightarrow$ Stage~C
-        \item \textbf{68.14\%} official test (Stage~C); \textbf{65.17\%} after Stage~B only
-        \item Independent \texttt{results.py} evaluation for final numbers
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
+\begin{frame}{Takeaway}
     \centering
-    \Huge Questions?
+    \Large
+    \textbf{68.14\%} official test (Stage~C) \quad | \quad \textbf{65.17\%} (Stage~B only)
+
+    \vspace{1.5em}
+    \normalsize
+    Questions?
 \end{frame}
 
 \end{document}
