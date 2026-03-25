@@ -22,17 +22,17 @@
 
 \title{\textbf{MAEG3080 Fundamentals of Machine Intelligence}\\Final Project Report\\[0.5em]\large CIFAR-100 Image Classification with a Custom PyTorch Network}
 \author{
-    Student 1 Name (Student ID) \\
-    Student 2 Name (Student ID) \\
-    Student 3 Name (Student ID)
+    Rex Yim (Yim Fu Chong) \\
+    \url{1155176974@link.cuhk.edu.hk} \\
+    The Chinese University of Hong Kong
 }
-\date{April 2026}
+\date{March 25, 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This report presents our final project for MAEG3080: training an image classifier from scratch on CIFAR-100 using PyTorch, without pretrained weights. We use a compact SE-ResNet-style architecture with squeeze-and-excitation blocks. We first train a short baseline with basic augmentations, then finetune (Stage~B) with RandAugment and a held-out validation split, obtaining \textbf{65.17\%} official test accuracy. We then apply a third stage (Stage~C): additional finetuning from the Stage~B checkpoint with RandAugment, Mixup/CutMix, and EMA at a lower learning rate. The \textbf{best} model achieves \textbf{68.14\%} on the official test set, evaluated with an independent \texttt{results.py} script as required by the project.
+This report presents the final project for MAEG3080: training an image classifier from scratch on CIFAR-100 using PyTorch, without pretrained weights. The project uses a compact SE-ResNet-style architecture with squeeze-and-excitation blocks. We first train a short baseline with basic augmentations, then finetune (Stage~B) with RandAugment and a held-out validation split, obtaining \textbf{65.17\%} official test accuracy. We then apply a third stage (Stage~C): additional finetuning from the Stage~B checkpoint with RandAugment, Mixup/CutMix, and EMA at a lower learning rate. The \textbf{best} model achieves \textbf{68.14\%} on the official test set, evaluated with an independent \texttt{results.py} script as required by the project.
 \end{abstract}
 
 \section{Introduction}
@@ -187,14 +187,8 @@ Table~\ref{tab:logA} lists every baseline epoch; Table~\ref{tab:logB} lists sele
     \item \textbf{Trade-offs:} The SE-ResNet path is faster to iterate than a full Wide-ResNet Hydra ladder; the cost is a lower ceiling than very large models trained for hundreds of epochs on CIFAR-100.
 \end{itemize}
 
-\section{Group Contribution}
-Clearly explain how each member contributed to the project.
-
-\begin{itemize}[leftmargin=1.2em]
-    \item Student 1: Data pipeline, augmentation experiments, report writing
-    \item Student 2: Model design, training implementation, checkpoint management
-    \item Student 3: Hyperparameter tuning, presentation slides, result analysis
-\end{itemize}
+\section{Individual contribution}
+This project was completed by a single author. Rex Yim carried out all aspects of the work: data preprocessing and augmentation experiments; model implementation; the training pipeline and checkpoint workflow; result analysis; and preparation of this report and the presentation slides. Development began with assistance from OpenAI Codex, then continued in Cursor. Stages~B and~C were trained on Google Colab using NVIDIA GPU resources.
 
 \section{Conclusion}
 We trained a compact SE-ResNet from scratch on CIFAR-100 using a baseline-plus-finetune workflow (Stages~A--B), then improved the model with a Stage~C finetune (Mixup, CutMix, EMA) from the Stage~B checkpoint. Our \textbf{best} model achieves \textbf{68.14\%} official test accuracy via \texttt{results.py}, with Stage~B alone at \textbf{65.17\%}. Future work could explore longer schedules or wider architectures if compute allows.
