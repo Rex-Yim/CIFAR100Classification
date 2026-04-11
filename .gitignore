@@ -3,8 +3,4 @@
 .gcloud/
 __pycache__/
 *.pyc
-data/
-checkpoints*/
-runs/
-cloud/*.log
-outputs/
+*~
