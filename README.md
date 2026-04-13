@@ -20,6 +20,7 @@ Core files:
 - `scripts/repro_34pct_4epoch_baseline.sh`: **SE-ResNet** 4-epoch / test-eval baseline (matches historic ~34% local run; Colab notebook can run this first)
 - `scripts/iterate_from_34pct.sh`: **finetune after the baseline** — loads `best.pt` with `--init-from` (weights only), fresh LR schedule, RandAugment, default **60** epochs (faster than WRN ladder from scratch)
 - `scripts/quick_se_resnet_results.sh`: **one command** — baseline if needed → **30-epoch** finetune (default) → **`results.py`** (fast path for a number to report)
+- `scripts/colab_improve_se_resnet_results.sh`: **one command** — Stage C from the ~65% checkpoint → optional Stage D → auto-pick best val checkpoint → **`results.py`**
 - `scripts/local_runner.sh`: **single entrypoint** for Cursor / terminal (`env`, `install`, `baseline`, `ladder`, `select-best`, `final`, `results`) — same flows as Colab without `google.colab`
 - `cloud/setup_gcp_project.sh`: enables APIs and creates the GCS bucket/prefixes
 - `cloud/create_gcp_spot_vm.sh`: helper to create the Google Cloud Spot VM
@@ -196,7 +197,7 @@ Then:
 
 The notebook stores datasets and checkpoints in Google Drive, so Colab restarts are less painful.
 
-The quick notebook runs **`scripts/quick_se_resnet_results.sh`** (baseline if needed → finetune → `results.py`). Long **WRN / hydra ladder** runs use `scripts/hydra_ladder.sh` on your machine or a VM, not the Colab quick notebook.
+The quick notebook runs **`scripts/quick_se_resnet_results.sh`** (baseline if needed → finetune → `results.py`). To push beyond the ~65% Stage B checkpoint on Colab, use **`scripts/colab_improve_se_resnet_results.sh`**. Long **WRN / hydra ladder** runs use `scripts/hydra_ladder.sh` on your machine or a VM, not the Colab quick notebook.
 
 ## 8. Google Cloud workflow
 

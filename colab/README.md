@@ -30,6 +30,28 @@ Data and checkpoints live under **`My Drive/Colab_CIFAR/`** (`data/`, `checkpoin
 
 **Preferred:** open **`CIFAR_SOTA.ipynb`** (Stage C with `EPOCHS` cap + `EARLY_STOP_PATIENCE`, optional Stage D cell, separate `RUN_NAME` per run). Re-run **`colab/prepare_colab_bundle.sh`** after pulling changes so the tarball includes `iterate_from_stagec_stage_d.sh` and updated Stage C defaults.
 
+For a **single-command Colab improve path**, after **`se_resnet_from_34pct/best.pt`** exists on Drive, run:
+
+```bash
+PYTHON_BIN=python DATA_DIR="$DATA_DIR" SAVE_DIR="$SAVE_DIR" DEVICE="$DEVICE" \
+bash scripts/colab_improve_se_resnet_results.sh
+```
+
+This script:
+
+- runs **Stage C** from your Stage B `best.pt`
+- optionally runs **Stage D** from Stage C `best.pt`
+- automatically picks the better checkpoint by **validation accuracy**
+- runs **`results.py`** on the selected checkpoint
+
+Useful overrides:
+
+```bash
+RUN_STAGE_D=0 bash scripts/colab_improve_se_resnet_results.sh
+STAGE_C_EPOCHS=180 STAGE_D_EPOCHS=150 bash scripts/colab_improve_se_resnet_results.sh
+bash scripts/colab_improve_se_resnet_results.sh --use-hierarchical-loss --coarse-loss-weight 0.25
+```
+
 Or, after **`se_resnet_from_34pct/best.pt`** exists on Drive, run in a **new code cell** in `CIFAR_Quick` (project root is already `os.chdir` from unpack):
 
 ```python

@@ -8,6 +8,7 @@ Usage (from repo root):
 
 Environment:
   PDFLATEX=/path/to/pdflatex  — optional, force pdflatex binary
+  USE_TECTONIC=1  — use tectonic instead of pdflatex (bundles packages; use if BasicTeX is incomplete)
 """
 from __future__ import annotations
 
@@ -131,7 +132,11 @@ def main() -> None:
             )
         print(r.stdout.strip() or "Generated training curve figures.")
 
-    if find_pdflatex():
+    use_tectonic = os.environ.get("USE_TECTONIC", "").lower() in ("1", "true", "yes")
+    if use_tectonic and find_tectonic():
+        engine = "tectonic"
+        print("Using: tectonic ->", find_tectonic(), "(USE_TECTONIC=1)")
+    elif find_pdflatex():
         engine = "pdflatex"
         print("Using: pdflatex ->", find_pdflatex())
     elif find_tectonic():

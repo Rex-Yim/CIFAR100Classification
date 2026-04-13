@@ -216,8 +216,10 @@ We ship a small FastAPI app under \path{demo/} (\texttt{demo/app.py}): a browser
     \item \textbf{Trade-offs:} The SE-ResNet path is faster to iterate than a full Wide-ResNet Hydra ladder; the cost is a lower ceiling than very large models trained for hundreds of epochs on CIFAR-100.
 \end{itemize}
 
-\section{Individual contribution}
-Rex Yim completed this project individually: data preprocessing and augmentation experiments, model code, training and checkpoints, analysis, and this report and slides. Early drafting used OpenAI Codex; later work used Cursor. Stages~B and~C ran on Google Colab (NVIDIA GPU).
+\section{Contribution}
+\textbf{Rex Yim} led implementation: data pipeline, preprocessing and augmentation experiments, model code, training and checkpoints, analysis, and primary drafting of this report and slides. Early drafting used OpenAI Codex; later work used Cursor. Stages~B and~C ran on Google Colab (NVIDIA GPU).
+
+\textbf{Jason Chen} contributed brainstorming, discussions on preprocessing and training schedule (including epoch sizes), and support for presentation preparation and Q\&A practice.
 
 \section{Conclusion}
 We trained a compact SE-ResNet on CIFAR-100 (Stages~A--B), then improved it with Stage~C (Mixup, CutMix, EMA) from the Stage~B checkpoint. The best official test accuracy is \textbf{68.14\%} (\texttt{results.py}), with Stage~B alone at \textbf{65.17\%}. Future work could use longer schedules or wider models if compute permits.
