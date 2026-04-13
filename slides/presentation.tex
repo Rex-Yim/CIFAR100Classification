@@ -34,15 +34,48 @@
 
 \title{MAEG3080 Fundamentals of Machine Intelligence}
 \subtitle{\small CIFAR-100 · Custom PyTorch SE-ResNet · Final Project}
-\author{Rex Yim (Yim Fu Chong) \\ \url{1155176974@link.cuhk.edu.hk}}
+\author{
+    \begin{tabular}{c@{\hspace{3em}}c}
+        Rex Yim (Yim Fu Chong) & Jason Chen (Chen Jiashen) \\
+        \url{1155176974@link.cuhk.edu.hk} & \url{11555236890@link.cuhk.edu.hk}
+    \end{tabular}
+}
 \institute{The Chinese University of Hong Kong}
 \date{March 25, 2026}
 
 \begin{document}
 
 \begin{frame}[plain]
-    \vspace*{-10pt}
-    \titlepage
+    \centering
+    \vspace*{0.4cm}
+
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+    \vspace{0.35cm}
+    {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle\par}
+
+    \vspace{1.1cm}
+    {\color{mAccent}\rule{0.7\textwidth}{0.8pt}\par}
+    \vspace{0.8cm}
+
+    \begin{columns}[T,onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \centering
+            {\normalsize\bfseries Rex Yim (Yim Fu Chong)\par}
+            \vspace{0.25em}
+            {\small\url{1155176974@link.cuhk.edu.hk}\par}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            {\normalsize\bfseries Jason Chen (Chen Jiashen)\par}
+            \vspace{0.25em}
+            {\small\url{11555236890@link.cuhk.edu.hk}\par}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.9cm}
+    {\small\usebeamercolor[fg]{institute}\textbf{The Chinese University of Hong Kong}\par}
+    \vspace{0.2cm}
+    {\small\usebeamercolor[fg]{date}\insertdate\par}
 \end{frame}
 
 \begin{frame}{Goal}
