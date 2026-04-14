@@ -1,6 +1,8 @@
 # Colab workflow
 
-Train on **Google Colab** with checkpoints on **Drive**. Local training does not need this folder — use `scripts/local_runner.sh` or `python train.py`.
+**Repository:** [github.com/Rex-Yim/CIFAR100Classification](https://github.com/Rex-Yim/CIFAR100Classification)
+
+Train on **Google Colab** with checkpoints on **Drive**. Local training does not need this folder — use [`scripts/local_runner.sh`](../scripts/local_runner.sh) or `python train.py`.
 
 ## Files
 

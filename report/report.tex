@@ -47,6 +47,9 @@ CIFAR-100 from scratch (compact SE-ResNet): Stage~A $\rightarrow$ Stage~B (\text
 
 \section{Introduction}
 We train on CIFAR-100 without pretrained weights (Colab; checkpoints on Drive) and report test accuracy via the course \texttt{results.py} script.
+\paragraph{Code and repository.}
+All implementation code, shell pipelines, Colab helpers, and \LaTeX{} sources for this report and the companion slides are maintained in the public GitHub repository
+\url{https://github.com/Rex-Yim/CIFAR100Classification} (default branch \texttt{main}).
 
 \section{Dataset}
 CIFAR-100: $50{,}000$ train / $10{,}000$ test. Per-channel normalization uses $\mu=(0.5071,0.4867,0.4408)$ and $\sigma=(0.2675,0.2565,0.2761)$. Stages~B/C hold out $10\%$ stratified validation (seed $42$); Stage~A uses all training images and evaluates on the test set each epoch.

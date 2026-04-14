@@ -1,18 +1,28 @@
 # Report (LaTeX)
 
-- Source: `report.tex`
-- Build PDF (from repository root). The script uses **`pdflatex`** if installed, otherwise **`tectonic`** (`brew install tectonic`):
+**Course:** MAEG3080 — *Fundamentals of Machine Intelligence* (CUHK). **Repository:** [github.com/Rex-Yim/CIFAR100Classification](https://github.com/Rex-Yim/CIFAR100Classification)
 
-  ```bash
-  python scripts/build_pdfs.py
-  ```
+## Sources
 
-  PDFs: `artifacts/report.pdf` and `artifacts/presentation.pdf`.
+| File | Role |
+|------|------|
+| [`report.tex`](report.tex) | Final project report (PDF) |
+| [`../slides/presentation.tex`](../slides/presentation.tex) | Beamer slides |
 
-- Manual build:
+## Build PDFs (from repository root)
 
-  ```bash
-  pdflatex -interaction=nonstopmode -output-directory=../artifacts report.tex
-  ```
+Uses **`pdflatex`** if installed, otherwise **`tectonic`** (`brew install tectonic` on macOS):
 
-  Run `pdflatex` twice for stable cross-references.
+```bash
+python scripts/build_pdfs.py
+```
+
+Output (gitignored): `artifacts/report.pdf` and `artifacts/presentation.pdf`.
+
+## Manual build (from `report/`)
+
+```bash
+pdflatex -interaction=nonstopmode -output-directory=../artifacts report.tex
+```
+
+Run `pdflatex` twice for stable cross-references and the table of contents.
