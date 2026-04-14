@@ -6,8 +6,18 @@
 
 PyTorch CIFAR-100 image classification with **WideResNet + Hydra** (`wrn_hydra`) and an **SE-ResNet** baseline (`se_resnet`). Training can run **locally**, in [**Google Colab**](https://colab.research.google.com/), or on a **GCP Spot VM** with GCS sync. Official test accuracy is reported with [`results.py`](results.py).
 
+### Read the PDFs (report and slides)
+
+| Document | View / download |
+|----------|-----------------|
+| **Final project report** | [**report.pdf**](https://github.com/Rex-Yim/CIFAR100Classification/blob/main/report/report.pdf) · [source `report/report.tex`](report/report.tex) |
+| **Presentation slides** | [**presentation.pdf**](https://github.com/Rex-Yim/CIFAR100Classification/blob/main/slides/presentation.pdf) · [source `slides/presentation.tex`](slides/presentation.tex) |
+
+Rebuild PDFs locally after editing LaTeX: [`report/README.md`](report/README.md) and `python scripts/build_pdfs.py`.
+
 ## Contents
 
+- [Read the PDFs (report and slides)](#read-the-pdfs-report-and-slides)
 - [Training paths (pick one)](#training-paths-pick-one)
 - [1. Install dependencies](#1-install-dependencies)
 - [1b. Local runner (Cursor / terminal)](#1b-local-runner-cursor--terminal)
